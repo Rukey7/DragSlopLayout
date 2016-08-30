@@ -150,6 +150,7 @@ public class ScrollOverLayout extends FrameLayout {
 
             case MotionEvent.ACTION_MOVE:
                 scrollY += mOldY - y;
+                Log.w("ScrollOverLayout", ""+scrollY);
                 if (scrollY < 0) {
                     scrollTo(0, scrollY);
                     mScrollStatus = STATUS_SCROLL;
@@ -158,6 +159,7 @@ public class ScrollOverLayout extends FrameLayout {
                 } else {
                     scrollTo(0, 0);
                     mScrollStatus = STATUS_EXPANDED;
+                    Log.e("ScrollOverLayout", "STATUS_EXPANDED");
                 }
                 break;
 

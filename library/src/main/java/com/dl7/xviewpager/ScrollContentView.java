@@ -48,35 +48,33 @@ public class ScrollContentView extends ScrollView {
 
     @Override
     public boolean onTouchEvent(MotionEvent ev) {
-        if (mParentView instanceof ScrollOverLayout) {
-            if (((ScrollOverLayout)mParentView).getScrollStatus() != ScrollOverLayout.STATUS_EXPANDED
-                    && !mIsSetParentOldY) {
-                return false;
-            }
+        if (((ScrollOverLayout) mParentView).getScrollStatus() != ScrollOverLayout.STATUS_EXPANDED
+                && !mIsSetParentOldY) {
+            return false;
         }
         int y = (int) ev.getRawY();
-        Log.d("ScrollContentView", ""+y);
+        Log.d("ScrollContentView", "" + y);
         switch (ev.getAction()) {
             case MotionEvent.ACTION_MOVE:
                 if (getScrollY() == 0 && mOldY == 0) {
                     mOldY = y;
                 }
-                Log.i("ScrollContentView", ""+getScrollY());
+                Log.i("ScrollContentView", "" + getScrollY());
                 if (getScrollY() == 0 && (y > mOldY)) {
                     if (!mIsSetParentOldY) {
                         Log.e("ScrollContentView", "mIsSetParentOldY");
                         mIsSetParentOldY = true;
-                        ((ScrollOverLayout)mParentView).setOldY(mOldY);
+                        ((ScrollOverLayout) mParentView).setOldY(mOldY);
                     }
-                    ((ScrollOverLayout)mParentView).onTouchEvent(ev);
+                    ((ScrollOverLayout) mParentView).onTouchEvent(ev);
 //                    ((ScrollOverLayout)mParentView).onTouchEvent(ev);
                     return true;
                 }
                 break;
             case MotionEvent.ACTION_UP:
-                if (getScrollY() == 0) {
-                    ((ScrollOverLayout)mParentView).onTouchEvent(ev);
-                }
+//                if (getScrollY() == 0) {
+                ((ScrollOverLayout) mParentView).onTouchEvent(ev);
+//                }
             default:
                 mOldY = 0;
                 mIsSetParentOldY = false;
