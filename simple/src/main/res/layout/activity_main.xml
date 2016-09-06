@@ -1,53 +1,73 @@
-<?xml version="1.0" encoding="utf-8"?>
-<FrameLayout
+<RelativeLayout
+    android:id="@+id/content"
     xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="com.dl7.simple.xviewpager.MainActivity">
+    tools:context=".MainActivity">
 
-    <com.dl7.xviewpager.ScrollOverLayout
+    <View
+        android:id="@+id/spacer"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_centerInParent="true"/>
+
+    <ImageView
+        android:id="@+id/right_top"
         android:layout_width="match_parent"
-        android:layout_height="300dp"
-        android:layout_gravity="bottom"
-        android:background="@android:color/holo_red_light"
-        app:fix_height="200dp">
+        android:layout_height="match_parent"
+        android:layout_above="@id/spacer"
+        android:layout_alignLeft="@id/spacer"
+        android:contentDescription="@null"
+        android:scaleType="centerCrop"
+        android:src="@mipmap/demo"/>
 
-        <LinearLayout
-            android:orientation="vertical"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent">
+    <ImageView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_above="@id/spacer"
+        android:layout_alignRight="@id/spacer"
+        android:contentDescription="@null"
+        android:scaleType="centerCrop"
+        android:src="@mipmap/demo"/>
 
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_margin="10dp"
-                android:text="我是标题"
-                android:textColor="@android:color/white"
-                android:textSize="16sp"/>
+    <ImageView
+        android:id="@+id/right_bottom"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_alignLeft="@id/spacer"
+        android:layout_below="@id/spacer"
+        android:contentDescription="@null"
+        android:scaleType="centerCrop"
+        android:src="@mipmap/demo"/>
 
-            <com.dl7.xviewpager.ScrollContentView
-                android:layout_width="match_parent"
-                android:layout_height="match_parent">
+    <ImageView
+        android:id="@+id/left_bottom"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_alignRight="@id/spacer"
+        android:layout_below="@id/spacer"
+        android:contentDescription="@null"
+        android:scaleType="centerCrop"
+        android:src="@mipmap/demo"/>
 
-                <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:padding="10dp"
-                    android:text="JSON字符串里的非数字型键值没有双引号
-JSON中存在\t这样的制表符,看起来和空格一样,但是就是因为它的存在校验不通过。去掉就能过了。
-编辑器有bom头也会造成
-有这时间看这条,不如他么的进群和一千多个基友讨论1群:BEJSON官方群 2群:BEJSON官方群老夫要加入(密码:bejson.com)JSON字符串里的非数字型键值没有双引号
-JSON中存在\t这样的制表符,看起来和空格一样,但是就是因为它的存在校验不通过。去掉就能过了。
-编辑器有bom头也会造成
-有这时间看这条,不如他么的进群和一千多个基友讨论1群:BEJSON官方群 2群:BEJSON官方群老夫要加入(密码:bejson.com)JSON字符串里的非数字型键值没有双引号
-JSON中存在\t这样的制表符,看起来和空格一样,但是就是因为它的存在校验不通过。去掉就能过了。
-编辑器有bom头也会造成
-有这时间看这条,不如他么的进群和一千多个基友讨论1群:BEJSON官方群 2群:BEJSON官方群老夫要加入(密码:bejson.com)"
-                    android:textColor="@android:color/white"
-                    android:textSize="16sp"/>
-            </com.dl7.xviewpager.ScrollContentView>
-        </LinearLayout>
-    </com.dl7.xviewpager.ScrollOverLayout>
-</FrameLayout>
+    <ImageView
+        android:id="@+id/overlay"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:contentDescription="@null"/>
+
+    <Button
+        android:id="@+id/button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="@null"
+        android:layout_centerInParent="true"
+        android:text="@string/app_name"
+        android:elevation="10dp"
+        android:textColor="@android:color/black"
+        android:textSize="88sp"
+        android:textStyle="bold"/>
+
+</RelativeLayout>
+

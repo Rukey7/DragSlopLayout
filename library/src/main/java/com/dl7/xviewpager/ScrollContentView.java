@@ -53,7 +53,6 @@ public class ScrollContentView extends ScrollView {
             return false;
         }
         int y = (int) ev.getRawY();
-        Log.d("ScrollContentView", "" + y);
         switch (ev.getAction()) {
             case MotionEvent.ACTION_MOVE:
                 if (getScrollY() == 0 && mOldY == 0) {
@@ -67,7 +66,6 @@ public class ScrollContentView extends ScrollView {
                         ((ScrollOverLayout) mParentView).setOldY(mOldY);
                     }
                     ((ScrollOverLayout) mParentView).onTouchEvent(ev);
-//                    ((ScrollOverLayout)mParentView).onTouchEvent(ev);
                     return true;
                 }
                 break;
