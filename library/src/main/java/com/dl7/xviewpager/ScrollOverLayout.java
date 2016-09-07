@@ -1,7 +1,6 @@
 package com.dl7.xviewpager;
 
 import android.content.Context;
-import android.content.res.TypedArray;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.GestureDetector;
@@ -74,9 +73,9 @@ public class ScrollOverLayout extends FrameLayout {
         mScroller = new Scroller(context, null, true);
         mGd = new GestureDetector(context, mGestureListener);
 
-        TypedArray a = context.obtainStyledAttributes(attrs, R.styleable.ScrollOverLayout, 0, 0);
-        mFixHeight = a.getDimensionPixelOffset(R.styleable.ScrollOverLayout_fix_height, mFixHeight);
-        a.recycle();
+//        TypedArray a = context.obtainStyledAttributes(attrs, R.styleable.ScrollOverLayout, 0, 0);
+//        mFixHeight = a.getDimensionPixelOffset(R.styleable.ScrollOverLayout_fix_height, mFixHeight);
+//        a.recycle();
 
     }
 

@@ -5,7 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    app:fix_height="150dp"
+    app:fix_height="@dimen/layout_fix_height"
     tools:context="com.dl7.simple.xviewpager.TestActivity">
 
     <android.support.v4.view.ViewPager
@@ -19,6 +19,7 @@
         <!--android:layout_height="match_parent"/>-->
 
     <FrameLayout
+        android:id="@+id/fl_view"
         android:background="@color/photo_bg"
         android:layout_width="match_parent"
         android:layout_height="400dp"/>

@@ -1,11 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <declare-styleable name="ScrollOverLayout">
-        <attr name="layout_height" format="dimension"/>
-        <attr name="fix_height" format="dimension"/>
-    </declare-styleable>
-
     <declare-styleable name="DragSlopLayout">
         <attr name="layout_height" format="dimension"/>
         <attr name="fix_height" format="dimension"/>

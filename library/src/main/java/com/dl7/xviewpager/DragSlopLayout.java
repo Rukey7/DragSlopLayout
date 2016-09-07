@@ -7,6 +7,7 @@ import android.support.v4.view.ViewCompat;
 import android.support.v4.widget.ScrollerCompat;
 import android.support.v4.widget.ViewDragHelper;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.animation.BounceInterpolator;
@@ -28,6 +29,7 @@ public class DragSlopLayout extends FrameLayout {
 
     private static final float TOUCH_SLOP_SENSITIVITY = 1.f;
     private static final float FLING_VELOCITY = 2000;
+    private static final int FALL_BOUND_DURATION = 1000;
     private int mFixHeight;
     private int mHeight;
     private Context mContext;
@@ -36,6 +38,7 @@ public class DragSlopLayout extends FrameLayout {
     private View mDragView;
     private boolean mIsDrag = false;
     private ScrollerCompat mScroller;
+    private int mStatus;
 
 
     public DragSlopLayout(Context context) {
@@ -55,8 +58,7 @@ public class DragSlopLayout extends FrameLayout {
         mContext = context;
         mDragHelper = ViewDragHelper.create(this, TOUCH_SLOP_SENSITIVITY, callback);
         mScroller = ScrollerCompat.create(context, new BounceInterpolator());
-
-        TypedArray a = context.obtainStyledAttributes(attrs, R.styleable.ScrollOverLayout, 0, 0);
+        TypedArray a = context.obtainStyledAttributes(attrs, R.styleable.DragSlopLayout, 0, 0);
         mFixHeight = a.getDimensionPixelOffset(R.styleable.DragSlopLayout_fix_height, mFixHeight);
         a.recycle();
     }
@@ -71,6 +73,7 @@ public class DragSlopLayout extends FrameLayout {
         }
         mMainView = getChildAt(0);
         mDragView = getChildAt(1);
+        Log.e("DragSlopLayout", "onFinishInflate");
     }
 
     @Override
@@ -114,14 +117,12 @@ public class DragSlopLayout extends FrameLayout {
             }
             isIntercept = true;
         }
-//        Log.d("DragLayout", "onInterceptTouchEvent "+isIntercept);
         return isIntercept;
     }
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
         mDragHelper.processTouchEvent(event);
-//        Log.d("DragLayout", "onTouchEvent "+mIsDrag);
         return mIsDrag;
     }
 
@@ -146,7 +147,9 @@ public class DragSlopLayout extends FrameLayout {
             super.onViewReleased(releasedChild, xvel, yvel);
             if (Math.abs(yvel) < FLING_VELOCITY) {
                 if (mDragView.getTop() > criticalTop) {
-                    mDragHelper.smoothSlideViewTo(mDragView, 0, collapsedTop);
+//                    mDragHelper.smoothSlideViewTo(mDragView, 0, collapsedTop);
+                    mScroller.startScroll(0, mDragView.getTop(), 0, collapsedTop - mDragView.getTop(),
+                            FALL_BOUND_DURATION);
                     ViewCompat.postInvalidateOnAnimation(DragSlopLayout.this);
                 } else {
                     mDragHelper.smoothSlideViewTo(mDragView, 0, expandedTop);
@@ -210,13 +213,34 @@ public class DragSlopLayout extends FrameLayout {
 
     @Override
     public void computeScroll() {
-        if (mDragHelper.continueSettling(true) || mScroller.computeScrollOffset()) {
+        if (mDragHelper.continueSettling(true) || _continueSettling()) {
             ViewCompat.postInvalidateOnAnimation(this);
         }
         super.computeScroll();
     }
 
     /*********************************** Animation ********************************************/
+
+    /**
+     * 处理自定义滚动动画
+     */
+    private boolean _continueSettling() {
+        if (!mScroller.computeScrollOffset()) {
+            return false;
+        }
+        final int x = mScroller.getCurrX();
+        final int y = mScroller.getCurrY();
+        final int dx = x - mDragView.getLeft();
+        final int dy = y - mDragView.getTop();
+
+        if (dx != 0) {
+            ViewCompat.offsetLeftAndRight(mDragView, dx);
+        }
+        if (dy != 0) {
+            ViewCompat.offsetTopAndBottom(mDragView, dy);
+        }
+        return true;
+    }
 
 
 }
