@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.dl7.xviewpager.DragSlopLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    app:fix_height="150dp"
+    tools:context="com.dl7.simple.xviewpager.TestActivity">
+
+    <android.support.v4.view.ViewPager
+        android:id="@+id/vp_photo"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"/>
+
+    <!--<ImageView-->
+        <!--android:layout_width="match_parent"-->
+        <!--android:src="@mipmap/img"-->
+        <!--android:layout_height="match_parent"/>-->
+
+    <FrameLayout
+        android:background="@color/photo_bg"
+        android:layout_width="match_parent"
+        android:layout_height="400dp"/>
+</com.dl7.xviewpager.DragSlopLayout>
