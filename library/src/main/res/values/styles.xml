@@ -5,4 +5,9 @@
         <attr name="layout_height" format="dimension"/>
         <attr name="fix_height" format="dimension"/>
     </declare-styleable>
+
+    <declare-styleable name="DragSlopLayout">
+        <attr name="layout_height" format="dimension"/>
+        <attr name="fix_height" format="dimension"/>
+    </declare-styleable>
 </resources>

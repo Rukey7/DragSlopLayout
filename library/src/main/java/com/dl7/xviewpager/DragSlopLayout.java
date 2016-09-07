@@ -1,19 +1,21 @@
 package com.dl7.xviewpager;
 
 import android.content.Context;
+import android.content.res.TypedArray;
 import android.graphics.Color;
-import android.graphics.Rect;
 import android.support.v4.view.ViewCompat;
+import android.support.v4.widget.ScrollerCompat;
 import android.support.v4.widget.ViewDragHelper;
 import android.util.AttributeSet;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.animation.BounceInterpolator;
 import android.widget.FrameLayout;
 
 /**
  * Created by long on 2016/9/6.
  */
-public class DragLayout extends FrameLayout {
+public class DragSlopLayout extends FrameLayout {
 
     // 展开
     public static final int STATUS_EXPANDED = 101;
@@ -26,24 +28,25 @@ public class DragLayout extends FrameLayout {
 
     private static final float TOUCH_SLOP_SENSITIVITY = 1.f;
     private static final float FLING_VELOCITY = 2000;
-    private int mFixHeight = 200;
+    private int mFixHeight;
     private int mHeight;
     private Context mContext;
     private ViewDragHelper mDragHelper;
     private View mMainView;
     private View mDragView;
     private boolean mIsDrag = false;
+    private ScrollerCompat mScroller;
 
 
-    public DragLayout(Context context) {
+    public DragSlopLayout(Context context) {
         this(context, null);
     }
 
-    public DragLayout(Context context, AttributeSet attrs) {
+    public DragSlopLayout(Context context, AttributeSet attrs) {
         this(context, attrs, -1);
     }
 
-    public DragLayout(Context context, AttributeSet attrs, int defStyleAttr) {
+    public DragSlopLayout(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
         _init(context, attrs);
     }
@@ -51,6 +54,11 @@ public class DragLayout extends FrameLayout {
     private void _init(Context context, AttributeSet attrs) {
         mContext = context;
         mDragHelper = ViewDragHelper.create(this, TOUCH_SLOP_SENSITIVITY, callback);
+        mScroller = ScrollerCompat.create(context, new BounceInterpolator());
+
+        TypedArray a = context.obtainStyledAttributes(attrs, R.styleable.ScrollOverLayout, 0, 0);
+        mFixHeight = a.getDimensionPixelOffset(R.styleable.DragSlopLayout_fix_height, mFixHeight);
+        a.recycle();
     }
 
     @Override
@@ -95,23 +103,25 @@ public class DragLayout extends FrameLayout {
         childView.layout(lp.leftMargin, childTop, lp.leftMargin + childWidth, childTop + childHeight);
     }
 
-    /**********************************
-     * ViewDragHelper使用的基本模板
-     ********************************************/
+    /*********************************** ViewDragHelper ********************************************/
 
     @Override
     public boolean onInterceptTouchEvent(MotionEvent ev) {
         boolean isIntercept = mDragHelper.shouldInterceptTouchEvent(ev);
-        Rect rect = new Rect(mDragView.getLeft(), mDragView.getTop(), mDragView.getRight(), mDragView.getBottom());
-        if (rect.contains((int)ev.getX(), (int)ev.getY())) {
+        if (mDragHelper.isViewUnder(mDragView, (int)ev.getX(), (int)ev.getY())) {
+            if (!mScroller.isFinished()) {
+                mScroller.abortAnimation();
+            }
             isIntercept = true;
         }
+//        Log.d("DragLayout", "onInterceptTouchEvent "+isIntercept);
         return isIntercept;
     }
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
         mDragHelper.processTouchEvent(event);
+//        Log.d("DragLayout", "onTouchEvent "+mIsDrag);
         return mIsDrag;
     }
 
@@ -137,24 +147,42 @@ public class DragLayout extends FrameLayout {
             if (Math.abs(yvel) < FLING_VELOCITY) {
                 if (mDragView.getTop() > criticalTop) {
                     mDragHelper.smoothSlideViewTo(mDragView, 0, collapsedTop);
-                    ViewCompat.postInvalidateOnAnimation(DragLayout.this);
+                    ViewCompat.postInvalidateOnAnimation(DragSlopLayout.this);
                 } else {
                     mDragHelper.smoothSlideViewTo(mDragView, 0, expandedTop);
-                    ViewCompat.postInvalidateOnAnimation(DragLayout.this);
+                    ViewCompat.postInvalidateOnAnimation(DragSlopLayout.this);
                 }
             } else if (yvel > 0) {
-                mDragHelper.smoothSlideViewTo(mDragView, 0, collapsedTop);
-                ViewCompat.postInvalidateOnAnimation(DragLayout.this);
+                mDragHelper.settleCapturedViewAt(0, collapsedTop);
+                ViewCompat.postInvalidateOnAnimation(DragSlopLayout.this);
             } else {
-                mDragHelper.smoothSlideViewTo(mDragView, 0, expandedTop);
-                ViewCompat.postInvalidateOnAnimation(DragLayout.this);
+                mDragHelper.settleCapturedViewAt(0, expandedTop);
+                ViewCompat.postInvalidateOnAnimation(DragSlopLayout.this);
             }
             requestDisallowInterceptTouchEvent(false);
         }
 
+        /**
+         * 检测 ViewDrag 状态变化，eg：
+         * STATE_IDLE       闲置、停止
+         * STATE_DRAGGING   拖拽中
+         * STATE_SETTLING   滚动状态(描述不是很确切)，比如拖拽放手后在onViewReleased()调用smoothSlideViewTo()控制View移动的时候
+         * @param state
+         */
         @Override
         public void onViewDragStateChanged(int state) {
             super.onViewDragStateChanged(state);
+            switch (state) {
+                case ViewDragHelper.STATE_IDLE:
+//                    Log.w("DragLayout", "STATE_IDLE");
+                    break;
+                case ViewDragHelper.STATE_DRAGGING:
+//                    Log.i("DragLayout", "STATE_DRAGGING");
+                    break;
+                case ViewDragHelper.STATE_SETTLING:
+//                    Log.e("DragLayout", "STATE_SETTLING");
+                    break;
+            }
         }
 
         @Override
@@ -182,9 +210,13 @@ public class DragLayout extends FrameLayout {
 
     @Override
     public void computeScroll() {
-        if (mDragHelper.continueSettling(true)) {
+        if (mDragHelper.continueSettling(true) || mScroller.computeScrollOffset()) {
             ViewCompat.postInvalidateOnAnimation(this);
         }
         super.computeScroll();
     }
+
+    /*********************************** Animation ********************************************/
+
+
 }
