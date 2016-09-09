@@ -2,7 +2,11 @@
 <resources>
 
     <declare-styleable name="DragSlopLayout">
-        <attr name="layout_height" format="dimension"/>
         <attr name="fix_height" format="dimension"/>
+        <attr name="mode" format="enum">
+            <enum name="drag" value="1"/>
+            <enum name="fix_always" value="2"/>
+            <enum name="animate" value="3"/>
+        </attr>
     </declare-styleable>
 </resources>

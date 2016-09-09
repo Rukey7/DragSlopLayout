@@ -6,7 +6,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    app:fix_height="@dimen/layout_fix_height"
+    app:mode="fix_always"
     tools:context="com.dl7.simple.xviewpager.TestActivity">
 
     <android.support.v4.view.ViewPager
@@ -19,9 +19,40 @@
         <!--android:src="@mipmap/img"-->
         <!--android:layout_height="match_parent"/>-->
 
-    <FrameLayout
-        android:id="@+id/fl_view"
-        android:background="@color/photo_bg"
+    <!--<FrameLayout-->
+        <!--android:id="@+id/fl_view"-->
+        <!--android:background="@color/photo_bg"-->
+        <!--android:layout_width="match_parent"-->
+        <!--android:layout_height="400dp"/>-->
+    
+    <LinearLayout
+        android:orientation="horizontal"
+        android:background="@android:color/holo_orange_light"
         android:layout_width="match_parent"
-        android:layout_height="400dp"/>
+        android:layout_height="wrap_content">
+
+        <ImageView
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:src="@mipmap/ic_favorite_white_24dp"/>
+
+        <ImageView
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:src="@mipmap/ic_favorite_white_24dp"/>
+
+        <ImageView
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:src="@mipmap/ic_favorite_white_24dp"/>
+
+        <ImageView
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:src="@mipmap/ic_favorite_white_24dp"/>
+    </LinearLayout>
 </com.dl7.xviewpager.DragSlopLayout>
