@@ -78,6 +78,8 @@ public class DragSlopLayout extends FrameLayout {
     private ViewPager.OnPageChangeListener mViewPagerListener;
     // 动画持有者
     private AnimatorPresenter mAnimPresenter;
+    // 和 ViewPager 联动时的自动执行进入动画的延迟时间，注意和动画的启动延迟时间区分
+    private int mAutoAnimateDelay = 1000;
 
 
     public DragSlopLayout(Context context) {
@@ -461,7 +463,7 @@ public class DragSlopLayout extends FrameLayout {
                     isRightSlide = true;
                     mLastOffset = 0;
                     if (mDragStatus == STATUS_EXIT) {
-                        _showDragView(1000);
+                        _showDragView(mAutoAnimateDelay);
                     }
                 }
                 status = state;
@@ -470,14 +472,28 @@ public class DragSlopLayout extends FrameLayout {
         ((ViewPager) mMainView).addOnPageChangeListener(mViewPagerListener);
     }
 
+    public int getAutoAnimateDelay() {
+        return mAutoAnimateDelay;
+    }
+
+    public void setAutoAnimateDelay(int autoAnimateDelay) {
+        mAutoAnimateDelay = autoAnimateDelay;
+    }
+
     /*********************************** Animation ********************************************/
 
-    public static final int SLIDE_IN_BOTTOM = 101;
-    public static final int SLIDE_IN_LEFT = 102;
-    public static final int SLIDE_IN_RIGHT = 103;
+    public static final int SLIDE_BOTTOM = 101;
+    public static final int SLIDE_LEFT = 102;
+    public static final int SLIDE_RIGHT = 103;
+    public static final int FADE = 104;
+    public static final int FLIP_X = 105;
+    public static final int FLIP_Y = 106;
+    public static final int ZOOM = 107;
+    public static final int ZOOM_LEFT = 108;
+    public static final int ZOOM_RIGHT = 109;
 
     @Retention(RetentionPolicy.SOURCE)
-    @IntDef({SLIDE_IN_BOTTOM, SLIDE_IN_LEFT, SLIDE_IN_RIGHT})
+    @IntDef({SLIDE_BOTTOM, SLIDE_LEFT, SLIDE_RIGHT, FADE, FLIP_X, FLIP_Y, ZOOM, ZOOM_LEFT, ZOOM_RIGHT})
     public @interface AnimatorMode {
     }
 

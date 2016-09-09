@@ -60,8 +60,7 @@ public class AnimateActivity extends AppCompatActivity {
             }
         });
         mDsLayout.interactWithViewPager(true);
-        mDsLayout.setAnimatorMode(DragSlopLayout.SLIDE_IN_LEFT);
-//        mDragSlopLayout.interactWithViewPager(true);
+        mDsLayout.setAnimatorMode(DragSlopLayout.ZOOM_LEFT);
     }
 
     @OnClick({R.id.iv_favorite, R.id.iv_start, R.id.iv_praise, R.id.iv_share})
