@@ -1,4 +1,5 @@
 apply plugin: 'com.android.application'
+apply plugin: 'android-apt'
 
 android {
     compileSdkVersion 23
@@ -26,4 +27,7 @@ dependencies {
     compile project(':library')
     // photoview
     compile 'com.github.chrisbanes.photoview:library:1.2.4'
+    // butterknife
+    compile 'com.jakewharton:butterknife:8.4.0'
+    apt 'com.jakewharton:butterknife-compiler:8.4.0'
 }

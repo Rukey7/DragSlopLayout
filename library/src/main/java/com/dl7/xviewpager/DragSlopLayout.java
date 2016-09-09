@@ -12,7 +12,10 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewParent;
 import android.view.animation.BounceInterpolator;
+import android.view.animation.Interpolator;
 import android.widget.FrameLayout;
+
+import com.dl7.xviewpager.animate.AnimatorPresenter;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -73,6 +76,8 @@ public class DragSlopLayout extends FrameLayout {
     private ScrollerCompat mScroller;
     //
     private ViewPager.OnPageChangeListener mViewPagerListener;
+    // 动画持有者
+    private AnimatorPresenter mAnimPresenter;
 
 
     public DragSlopLayout(Context context) {
@@ -100,6 +105,7 @@ public class DragSlopLayout extends FrameLayout {
         if (mMode == MODE_DRAG) {
             mDragStatus = STATUS_COLLAPSED;
         }
+        mAnimPresenter = new AnimatorPresenter();
     }
 
     @Override
@@ -147,13 +153,18 @@ public class DragSlopLayout extends FrameLayout {
         int childTop;
         if (mDragStatus == STATUS_EXIT) {
             // 对于 ViewPager 换页后会回调 onLayout()，需要进行处理
-            childTop = b;
+            if (mMode == MODE_DRAG) {
+                childTop = b;
+            } else {
+                childTop = b - mFixHeight;
+                childView.setTranslationY(childHeight);
+            }
         } else if (mDragStatus == STATUS_COLLAPSED) {
             childTop = b - mFixHeight;
         } else if (mDragStatus == STATUS_EXPANDED) {
             childTop = b - childHeight;
         } else {
-            childTop = b;
+            childTop = b - mFixHeight;
         }
         childView.layout(lp.leftMargin, childTop, lp.leftMargin + childWidth, childTop + childHeight);
 
@@ -170,7 +181,7 @@ public class DragSlopLayout extends FrameLayout {
     @Override
     public boolean onInterceptTouchEvent(MotionEvent ev) {
         boolean isIntercept = mDragHelper.shouldInterceptTouchEvent(ev);
-        if (mDragStatus == STATUS_EXPANDED) {
+        if (mDragStatus == STATUS_EXPANDED && mMode == MODE_DRAG) {
             isIntercept = true;
         } else if (mDragHelper.isViewUnder(mDragView, (int) ev.getX(), (int) ev.getY()) && mMode == MODE_DRAG) {
             if (!mScroller.isFinished()) {
@@ -346,20 +357,25 @@ public class DragSlopLayout extends FrameLayout {
      */
     private void _hideDragView(float percent) {
         if (!mHasShowRunnable) {
-            if (!mScroller.isFinished()) {
-                mScroller.abortAnimation();
-            }
             float hidePercent = percent * 3;
             if (hidePercent > 1.0f) {
                 hidePercent = 1.0f;
                 mDragStatus = STATUS_EXIT;
             } else {
-                mDragStatus = STATUS_COLLAPSED;
+                mDragStatus = STATUS_SCROLL;
             }
-            final int y = (int) (mFixHeight * hidePercent + mCollapsedTop);
-            final int dy = y - mDragView.getTop();
-            if (dy != 0) {
-                ViewCompat.offsetTopAndBottom(mDragView, dy);
+
+            if (mMode == MODE_DRAG) {
+                if (!mScroller.isFinished()) {
+                    mScroller.abortAnimation();
+                }
+                final int y = (int) (mFixHeight * hidePercent + mCollapsedTop);
+                final int dy = y - mDragView.getTop();
+                if (dy != 0) {
+                    ViewCompat.offsetTopAndBottom(mDragView, dy);
+                }
+            } else if (mMode == MODE_ANIMATE) {
+                mAnimPresenter.handleAnimateFrame(mDragView, hidePercent);
             }
         }
     }
@@ -373,16 +389,23 @@ public class DragSlopLayout extends FrameLayout {
         postDelayed(mShowRunnable, delay);
     }
 
-    /*********************************** Animation ********************************************/
-
+    /**
+     * 动画显示 Runnable
+     */
     private Runnable mShowRunnable = new Runnable() {
         @Override
         public void run() {
             mHasShowRunnable = false;
-            mScroller.startScroll(0, mDragView.getTop(), 0, mCollapsedTop - mDragView.getTop(), 500);
-            ViewCompat.postInvalidateOnAnimation(DragSlopLayout.this);
+            if (mMode == MODE_DRAG) {
+                mScroller.startScroll(0, mDragView.getTop(), 0, mCollapsedTop - mDragView.getTop(), 500);
+                ViewCompat.postInvalidateOnAnimation(DragSlopLayout.this);
+            } else if (mMode == MODE_ANIMATE) {
+                startInAnim();
+            }
         }
     };
+
+    /*********************************** ViewPager ********************************************/
 
     /**
      * 和 ViewPager 进行联动，注意第1个子视图必须为 ViewPager 或它的子类
@@ -447,6 +470,56 @@ public class DragSlopLayout extends FrameLayout {
         ((ViewPager) mMainView).addOnPageChangeListener(mViewPagerListener);
     }
 
+    /*********************************** Animation ********************************************/
+
+    public static final int SLIDE_IN_BOTTOM = 101;
+    public static final int SLIDE_IN_LEFT = 102;
+    public static final int SLIDE_IN_RIGHT = 103;
+
+    @Retention(RetentionPolicy.SOURCE)
+    @IntDef({SLIDE_IN_BOTTOM, SLIDE_IN_LEFT, SLIDE_IN_RIGHT})
+    public @interface AnimatorMode {
+    }
+
+    public int getAnimatorMode() {
+        return mAnimPresenter.getAnimatorMode();
+    }
+
+    public void setAnimatorMode(@AnimatorMode int animatorMode) {
+        mAnimPresenter.setAnimatorMode(animatorMode);
+    }
+
+    public int getStartDelay() {
+        return mAnimPresenter.getStartDelay();
+    }
+
+    public void setStartDelay(int startDelay) {
+        mAnimPresenter.setStartDelay(startDelay);
+    }
+
+    public int getDuration() {
+        return mAnimPresenter.getDuration();
+    }
+
+    public void setDuration(int duration) {
+        mAnimPresenter.setDuration(duration);
+    }
+
+    public Interpolator getInterpolator() {
+        return mAnimPresenter.getInterpolator();
+    }
+
+    public void setInterpolator(Interpolator interpolator) {
+        mAnimPresenter.setInterpolator(interpolator);
+    }
+
+    public void startInAnim() {
+        mAnimPresenter.startInAnim(mDragView);
+    }
+
+    public void startOutAnim() {
+        mAnimPresenter.startOutAnim(mDragView);
+    }
 
     /***********************************
      * interface
@@ -458,12 +531,4 @@ public class DragSlopLayout extends FrameLayout {
     @interface DragStatus {
     }
 
-    public static final int SLIDE_IN_BOTTOM = 101;
-    public static final int SLIDE_IN_LEFT = 102;
-    public static final int SLIDE_IN_RIGHT = 103;
-
-    @Retention(RetentionPolicy.SOURCE)
-    @IntDef({SLIDE_IN_BOTTOM, SLIDE_IN_LEFT, SLIDE_IN_RIGHT})
-    @interface Anim {
-    }
 }
