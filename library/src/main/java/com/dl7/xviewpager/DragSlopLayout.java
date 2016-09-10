@@ -74,12 +74,14 @@ public class DragSlopLayout extends FrameLayout {
     private ViewDragHelper mDragHelper;
     // 滚动辅助类
     private ScrollerCompat mScroller;
-    //
+    // ViewPager 监听器
     private ViewPager.OnPageChangeListener mViewPagerListener;
     // 动画持有者
     private AnimatorPresenter mAnimPresenter;
     // 和 ViewPager 联动时的自动执行进入动画的延迟时间，注意和动画的启动延迟时间区分
     private int mAutoAnimateDelay = 1000;
+    // 是否手动执行了退出动画，如果为真则不再执行自动进入动画
+    private boolean mIsDoOutAnim = false;
 
 
     public DragSlopLayout(Context context) {
@@ -358,7 +360,7 @@ public class DragSlopLayout extends FrameLayout {
      * @param percent   ViewPager 滑动百分比
      */
     private void _hideDragView(float percent) {
-        if (!mHasShowRunnable) {
+        if (!mHasShowRunnable && !mIsDoOutAnim) {
             float hidePercent = percent * 3;
             if (hidePercent > 1.0f) {
                 hidePercent = 1.0f;
@@ -462,7 +464,7 @@ public class DragSlopLayout extends FrameLayout {
                 if (state == ViewPager.SCROLL_STATE_IDLE) {
                     isRightSlide = true;
                     mLastOffset = 0;
-                    if (mDragStatus == STATUS_EXIT) {
+                    if (mDragStatus == STATUS_EXIT && !mIsDoOutAnim) {
                         _showDragView(mAutoAnimateDelay);
                     }
                 }
@@ -530,10 +532,12 @@ public class DragSlopLayout extends FrameLayout {
     }
 
     public void startInAnim() {
+        mIsDoOutAnim = false;
         mAnimPresenter.startInAnim(mDragView);
     }
 
     public void startOutAnim() {
+        mIsDoOutAnim = true;
         mAnimPresenter.startOutAnim(mDragView);
     }
 

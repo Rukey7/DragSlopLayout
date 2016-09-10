@@ -130,53 +130,74 @@ public final class AnimatorPresenter {
      */
     public void handleAnimateFrame(View target, float percent) {
         ViewGroup parent = (ViewGroup) target.getParent();
-        final float alpha = 1.0f * (1 - percent);
+        float alpha = 1.0f * (1 - percent);
+        float translationX = 0;
+        float translationY = 0;
+        float rotationX = 0;
+        float rotationY = 0;
+        float scale = 0;
+
         switch (mAnimatorMode) {
             case DragSlopLayout.SLIDE_BOTTOM:
-                final float translationY = target.getHeight() * percent;
-                ViewCompat.setTranslationY(target, translationY);
+                translationY = target.getHeight() * percent;
                 break;
 
             case DragSlopLayout.SLIDE_LEFT:
-                final float translationXL = - parent.getWidth() * percent;
-                ViewCompat.setTranslationX(target, translationXL);
+                translationX = - parent.getWidth() * percent;
                 break;
 
             case DragSlopLayout.SLIDE_RIGHT:
-                final float translationXR = parent.getWidth() * percent;
-                ViewCompat.setTranslationX(target, translationXR);
+                translationX = parent.getWidth() * percent;
                 break;
 
             case DragSlopLayout.FADE:
                 break;
 
             case DragSlopLayout.FLIP_X:
-                final float rotationX = 90 * percent;
-                ViewCompat.setRotationX(target, rotationX);
+                rotationX = 90 * percent;
                 break;
 
             case DragSlopLayout.FLIP_Y:
-                final float rotationY = 90 * percent;
-                ViewCompat.setRotationY(target, rotationY);
+                rotationY = 90 * percent;
                 break;
 
             case DragSlopLayout.ZOOM:
-                final float scaleX = 0.3f + 0.7f * (1 - percent);
-                final float scaleY = 0.3f + 0.7f * (1 - percent);
-                ViewCompat.setScaleX(target, scaleX);
-                ViewCompat.setScaleY(target, scaleY);
+                scale = 0.3f + 0.7f * (1 - percent);
                 break;
 
             case DragSlopLayout.ZOOM_LEFT:
-                mInAnimator = new ZoomInLeftAnimator();
-                mOutAnimator = new ZoomOutLeftAnimator();
+                alpha = Math.min(1.0f, alpha * 2);
+                final float valueL = parent.getWidth() * 0.2f;
+                if (percent < 0.5f) {
+                    scale = 1 - percent;
+                    translationX = percent * 2 * valueL;
+                } else {
+                    scale = (1 - percent) * 0.8f + 0.1f;
+                    translationX = valueL - (percent * 2 - 1.0f) * parent.getWidth() * 1.2f;
+                }
                 break;
             case DragSlopLayout.ZOOM_RIGHT:
+                alpha = Math.min(1.0f, alpha * 2);
+                final float valueR = -parent.getWidth() * 0.2f;
+                if (percent < 0.5f) {
+                    scale = 1 - percent;
+                    translationX = percent * 2 * valueR;
+                } else {
+                    scale = (1 - percent) * 0.8f + 0.1f;
+                    translationX = valueR + (percent * 2 - 1.0f) * parent.getWidth() * 1.2f;
+                }
                 mInAnimator = new ZoomInRightAnimator();
                 mOutAnimator = new ZoomOutRightAnimator();
                 break;
         }
+
         ViewCompat.setAlpha(target, alpha);
+        ViewCompat.setTranslationX(target, translationX);
+        ViewCompat.setTranslationY(target, translationY);
+        ViewCompat.setRotationX(target, rotationX);
+        ViewCompat.setRotationY(target, rotationY);
+        ViewCompat.setScaleX(target, scale);
+        ViewCompat.setScaleY(target, scale);
     }
 
 

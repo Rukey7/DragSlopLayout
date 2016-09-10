@@ -4,6 +4,7 @@ import android.os.Bundle;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
+import android.view.Window;
 import android.widget.ImageView;
 import android.widget.Toast;
 
@@ -37,15 +38,18 @@ public class AnimateActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        requestWindowFeature(Window.FEATURE_NO_TITLE);
         setContentView(R.layout.activity_animate);
         ButterKnife.bind(this);
 
         mDsLayout = (DragSlopLayout) findViewById(R.id.ds_layout);
         ViewPager mViewPager = (ViewPager) findViewById(R.id.vp_photo);
         List<Integer> imgList = new ArrayList<>();
-        for (int i = 0; i < 10; i++) {
-            imgList.add(R.mipmap.img);
-        }
+        imgList.add(R.mipmap.pic1);
+        imgList.add(R.mipmap.pic2);
+        imgList.add(R.mipmap.pic3);
+        imgList.add(R.mipmap.pic4);
+        imgList.add(R.mipmap.pic5);
         PhotoPagerAdapter mPagerAdapter = new PhotoPagerAdapter(this, imgList);
         mViewPager.setAdapter(mPagerAdapter);
         mPagerAdapter.setListener(new PhotoPagerAdapter.OnPhotoClickListener() {
@@ -60,7 +64,7 @@ public class AnimateActivity extends AppCompatActivity {
             }
         });
         mDsLayout.interactWithViewPager(true);
-        mDsLayout.setAnimatorMode(DragSlopLayout.ZOOM_LEFT);
+        mDsLayout.setAnimatorMode(DragSlopLayout.ZOOM_RIGHT);
     }
 
     @OnClick({R.id.iv_favorite, R.id.iv_start, R.id.iv_praise, R.id.iv_share})
