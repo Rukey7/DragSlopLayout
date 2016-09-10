@@ -6,7 +6,7 @@ android {
     buildToolsVersion "24.0.0 rc2"
 
     defaultConfig {
-        applicationId "com.dl7.simple.xviewpager"
+        applicationId "com.dl7.simple.drag"
         minSdkVersion 14
         targetSdkVersion 23
         versionCode 1

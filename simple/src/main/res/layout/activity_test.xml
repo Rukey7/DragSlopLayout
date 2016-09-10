@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<com.dl7.xviewpager.DragSlopLayout
+<com.dl7.drag.DragSlopLayout
     android:id="@+id/ds_layout"
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
@@ -7,7 +7,7 @@
     android:layout_height="match_parent"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     app:mode="fix_always"
-    tools:context="com.dl7.simple.xviewpager.TestActivity">
+    tools:context="com.dl7.simple.drag.TestActivity">
 
     <android.support.v4.view.ViewPager
         android:id="@+id/vp_photo"
@@ -25,4 +25,4 @@
         android:layout_width="match_parent"
         android:layout_height="400dp"/>
     
-</com.dl7.xviewpager.DragSlopLayout>
+</com.dl7.drag.DragSlopLayout>
