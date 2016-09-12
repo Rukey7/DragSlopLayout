@@ -3,6 +3,7 @@
 
     <declare-styleable name="DragSlopLayout">
         <attr name="fix_height" format="dimension"/>
+        <attr name="max_height" format="dimension"/>
         <attr name="mode" format="enum">
             <enum name="drag" value="1"/>
             <enum name="fix_always" value="2"/>

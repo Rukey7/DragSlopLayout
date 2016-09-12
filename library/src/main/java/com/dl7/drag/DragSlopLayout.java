@@ -13,6 +13,7 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewParent;
 import android.view.animation.BounceInterpolator;
+import android.view.animation.DecelerateInterpolator;
 import android.view.animation.Interpolator;
 import android.widget.FrameLayout;
 import android.widget.ScrollView;
@@ -53,6 +54,8 @@ public class DragSlopLayout extends FrameLayout {
     private int mMode;
     // 固定高度
     private int mFixHeight;
+    // 最大高度
+    private int mMaxHeight;
     // 整个布局高度
     private int mHeight;
     // 拖拽模式的临界Top值
@@ -76,8 +79,10 @@ public class DragSlopLayout extends FrameLayout {
     private View mDragView;
     // 拖拽帮助类
     private ViewDragHelper mDragHelper;
-    // 滚动辅助类
-    private ScrollerCompat mScroller;
+    // 下坠滚动辅助类
+    private ScrollerCompat mFallBoundScroller;
+    // 回升滚动辅助类
+    private ScrollerCompat mComeBackScroller;
     // ViewPager 监听器
     private ViewPager.OnPageChangeListener mViewPagerListener;
     // 动画持有者
@@ -108,10 +113,12 @@ public class DragSlopLayout extends FrameLayout {
     private void _init(Context context, AttributeSet attrs) {
         mContext = context;
         mDragHelper = ViewDragHelper.create(this, TOUCH_SLOP_SENSITIVITY, callback);
-        mScroller = ScrollerCompat.create(context, new BounceInterpolator());
+        mFallBoundScroller = ScrollerCompat.create(context, new BounceInterpolator());
+        mComeBackScroller = ScrollerCompat.create(context, new DecelerateInterpolator());
 
         TypedArray a = context.obtainStyledAttributes(attrs, R.styleable.DragSlopLayout, 0, 0);
         mFixHeight = a.getDimensionPixelOffset(R.styleable.DragSlopLayout_fix_height, mFixHeight);
+        mMaxHeight = a.getDimensionPixelOffset(R.styleable.DragSlopLayout_max_height, 0);
         mMode = a.getInt(R.styleable.DragSlopLayout_mode, MODE_DRAG);
         a.recycle();
         if (mMode == MODE_DRAG) {
@@ -124,7 +131,7 @@ public class DragSlopLayout extends FrameLayout {
     protected void onFinishInflate() {
         super.onFinishInflate();
         int childCount = getChildCount();
-        if (childCount != 2) {
+        if (childCount < 2) {
             // DragLayout 只能且必须包含两个子视图，第一个为主视图，另一个为可拖拽的视图
             throw new IllegalArgumentException("DragLayout must contains two sub-views.");
         }
@@ -142,27 +149,25 @@ public class DragSlopLayout extends FrameLayout {
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
         super.onMeasure(widthMeasureSpec, heightMeasureSpec);
 
-        int maxHeight = getMeasuredHeight() * 2 / 3;
-        MarginLayoutParams lp;
+        if (mMaxHeight == 0) {
+            // 未设置最大高度则为布局高度的 2/3
+            mMaxHeight = getMeasuredHeight() * 2 / 3;
+        }
         View childView = getChildAt(1);
-        lp = (MarginLayoutParams) childView.getLayoutParams();
+        MarginLayoutParams lp = (MarginLayoutParams) childView.getLayoutParams();
         int childWidth = childView.getMeasuredWidth();
         int childHeight = childView.getMeasuredHeight();
-        if (childHeight > maxHeight) {
+        // 限定视图的最大高度
+        if (childHeight > mMaxHeight) {
             MeasureSpec.makeMeasureSpec(childWidth - lp.leftMargin - lp.rightMargin, MeasureSpec.EXACTLY);
             childView.measure(MeasureSpec.makeMeasureSpec(childWidth - lp.leftMargin - lp.rightMargin, MeasureSpec.EXACTLY),
-                    MeasureSpec.makeMeasureSpec(maxHeight - lp.topMargin - lp.bottomMargin, MeasureSpec.EXACTLY));
+                    MeasureSpec.makeMeasureSpec(mMaxHeight - lp.topMargin - lp.bottomMargin, MeasureSpec.EXACTLY));
         }
     }
 
     @Override
     protected void onLayout(boolean changed, int l, int t, int r, int b) {
         super.onLayout(changed, l, t, r, b);
-        int childCount = getChildCount();
-        if (childCount != 2) {
-            // DragLayout 只能且必须包含两个子视图，第一个为主视图，另一个为可拖拽的视图
-            throw new IllegalArgumentException("DragLayout must contains two sub-views.");
-        }
 
         MarginLayoutParams lp;
         View childView = getChildAt(1);
@@ -171,6 +176,10 @@ public class DragSlopLayout extends FrameLayout {
         int childHeight = childView.getMeasuredHeight();
         if (mMode != MODE_DRAG) {
             // 非拖拽模式固定高度为子视图高度
+            mFixHeight = childHeight;
+        } else if (mFixHeight > childHeight) {
+            // 固定高度超过子视图高度则设置为固定模式
+            mMode = MODE_FIX_ALWAYS;
             mFixHeight = childHeight;
         }
         int childTop;
@@ -208,9 +217,7 @@ public class DragSlopLayout extends FrameLayout {
             isIntercept = true;
         } else
         if (mDragHelper.isViewUnder(mDragView, (int) ev.getX(), (int) ev.getY()) && mMode == MODE_DRAG) {
-            if (!mScroller.isFinished()) {
-                mScroller.abortAnimation();
-            }
+            _stopAllScroller();
         }
         if (mDragStatus == STATUS_EXIT) {
             getHandler().removeCallbacks(mShowRunnable);
@@ -249,7 +256,7 @@ public class DragSlopLayout extends FrameLayout {
                     if (mDragStatus == STATUS_EXPANDED) {
                         mDragHelper.smoothSlideViewTo(mDragView, 0, mCollapsedTop);
                     } else {
-                        mScroller.startScroll(0, mDragView.getTop(), 0, mCollapsedTop - mDragView.getTop(),
+                        mFallBoundScroller.startScroll(0, mDragView.getTop(), 0, mCollapsedTop - mDragView.getTop(),
                                 FALL_BOUND_DURATION);
                     }
                     ViewCompat.postInvalidateOnAnimation(DragSlopLayout.this);
@@ -320,7 +327,8 @@ public class DragSlopLayout extends FrameLayout {
 
     @Override
     public void computeScroll() {
-        if (mDragHelper.continueSettling(true) || _continueSettling()) {
+        if (mDragHelper.continueSettling(true) ||
+                _continueSettling(mFallBoundScroller) || _continueSettling(mComeBackScroller)) {
             mDragStatus = STATUS_SCROLL;
             ViewCompat.postInvalidateOnAnimation(this);
         }
@@ -330,13 +338,13 @@ public class DragSlopLayout extends FrameLayout {
     /**
      * 处理自定义滚动动画
      */
-    private boolean _continueSettling() {
-        boolean keepGoing = mScroller.computeScrollOffset();
+    private boolean _continueSettling(ScrollerCompat scroller) {
+        boolean keepGoing = scroller.computeScrollOffset();
         if (!keepGoing) {
             return false;
         }
-        final int x = mScroller.getCurrX();
-        final int y = mScroller.getCurrY();
+        final int x = scroller.getCurrX();
+        final int y = scroller.getCurrY();
         final int dx = x - mDragView.getLeft();
         final int dy = y - mDragView.getTop();
         if (dx != 0) {
@@ -345,15 +353,27 @@ public class DragSlopLayout extends FrameLayout {
         if (dy != 0) {
             ViewCompat.offsetTopAndBottom(mDragView, dy);
         }
-        if (keepGoing && x == mScroller.getFinalX() && y == mScroller.getFinalY()) {
+        if (keepGoing && x == scroller.getFinalX() && y == scroller.getFinalY()) {
             // Close enough. The interpolator/scroller might think we're still moving
             // but the user sure doesn't.
-            mScroller.abortAnimation();
+            scroller.abortAnimation();
             keepGoing = false;
             ViewCompat.postInvalidateOnAnimation(this);
             _switchStatus();
         }
         return keepGoing;
+    }
+
+    /**
+     * 停止所有滚动
+     */
+    private void _stopAllScroller() {
+        if (!mFallBoundScroller.isFinished()) {
+            mFallBoundScroller.abortAnimation();
+        }
+        if (!mComeBackScroller.isFinished()) {
+            mComeBackScroller.abortAnimation();
+        }
     }
 
     /*********************************** Inside ********************************************/
@@ -394,9 +414,7 @@ public class DragSlopLayout extends FrameLayout {
             }
 
             if (mMode == MODE_DRAG) {
-                if (!mScroller.isFinished()) {
-                    mScroller.abortAnimation();
-                }
+                _stopAllScroller();
                 final int y = (int) (mFixHeight * hidePercent + mCollapsedTop);
                 final int dy = y - mDragView.getTop();
                 if (dy != 0) {
@@ -426,7 +444,7 @@ public class DragSlopLayout extends FrameLayout {
         public void run() {
             mHasShowRunnable = false;
             if (mMode == MODE_DRAG) {
-                mScroller.startScroll(0, mDragView.getTop(), 0, mCollapsedTop - mDragView.getTop(), 500);
+                mComeBackScroller.startScroll(0, mDragView.getTop(), 0, mCollapsedTop - mDragView.getTop(), 500);
                 ViewCompat.postInvalidateOnAnimation(DragSlopLayout.this);
             } else if (mMode == MODE_ANIMATE) {
                 startInAnim();
