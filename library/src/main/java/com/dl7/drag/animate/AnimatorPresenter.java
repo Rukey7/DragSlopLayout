@@ -40,6 +40,7 @@ public final class AnimatorPresenter {
     private int mStartDelay;
     private int mDuration;
     private Interpolator mInterpolator;
+    private boolean mIsCustomAnimator = false;
 
     public AnimatorPresenter() {
         mAnimatorMode = DragSlopLayout.SLIDE_BOTTOM;
@@ -55,6 +56,7 @@ public final class AnimatorPresenter {
      */
     public void setAnimatorMode(@AnimatorMode int animatorMode) {
         mAnimatorMode = animatorMode;
+        mIsCustomAnimator = false;
         switch (animatorMode) {
             case DragSlopLayout.SLIDE_BOTTOM:
                 mInAnimator = new SlideInBottomAnimator();
@@ -101,15 +103,31 @@ public final class AnimatorPresenter {
     }
 
     /**
+     * 设置自定义动画
+     * @param inAnimator
+     * @param outAnimator
+     */
+    public void setCustomAnimator(BaseViewAnimator inAnimator, BaseViewAnimator outAnimator) {
+        mInAnimator = inAnimator;
+        mOutAnimator = outAnimator;
+        mIsCustomAnimator = true;
+    }
+
+    /**
      * 启动进入动画
      * @param target 目标View
      */
     public void startInAnim(View target) {
-        mInAnimator.setTarget(target)
-                .setStartDelay(mStartDelay)
-                .setDuration(mDuration)
-                .setInterpolator(mInterpolator)
-                .start();
+        if (mIsCustomAnimator) {
+            mInAnimator.setTarget(null)
+                    .start();
+        } else {
+            mInAnimator.setTarget(target)
+                    .setStartDelay(mStartDelay)
+                    .setDuration(mDuration)
+                    .setInterpolator(mInterpolator)
+                    .start();
+        }
     }
 
     /**
@@ -117,11 +135,16 @@ public final class AnimatorPresenter {
      * @param target 目标View
      */
     public void startOutAnim(View target) {
-        mOutAnimator.setTarget(target)
-                .setStartDelay(mStartDelay)
-                .setDuration(mDuration)
-                .setInterpolator(mInterpolator)
-                .start();
+        if (mIsCustomAnimator) {
+            mOutAnimator.setTarget(null)
+                    .start();
+        } else {
+            mOutAnimator.setTarget(target)
+                    .setStartDelay(mStartDelay)
+                    .setDuration(mDuration)
+                    .setInterpolator(mInterpolator)
+                    .start();
+        }
     }
 
     /**
@@ -135,7 +158,7 @@ public final class AnimatorPresenter {
         float translationY = 0;
         float rotationX = 0;
         float rotationY = 0;
-        float scale = 0;
+        float scale = 1;
 
         switch (mAnimatorMode) {
             case DragSlopLayout.SLIDE_BOTTOM:
@@ -186,8 +209,6 @@ public final class AnimatorPresenter {
                     scale = (1 - percent) * 0.8f + 0.1f;
                     translationX = valueR + (percent * 2 - 1.0f) * parent.getWidth() * 1.2f;
                 }
-                mInAnimator = new ZoomInRightAnimator();
-                mOutAnimator = new ZoomOutRightAnimator();
                 break;
         }
 

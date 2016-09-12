@@ -37,7 +37,7 @@ public abstract class BaseViewAnimator {
 
     public static final long DURATION = 1000;
 
-    private AnimatorSet mAnimatorSet;
+    protected AnimatorSet mAnimatorSet;
     private long mDuration = DURATION;
 
     {
@@ -62,28 +62,30 @@ public abstract class BaseViewAnimator {
      * @param target
      */
     public void reset(View target) {
-        ViewCompat.setAlpha(target, 1);
-        ViewCompat.setScaleX(target, 1);
-        ViewCompat.setScaleY(target, 1);
-        ViewCompat.setTranslationX(target, 0);
-        ViewCompat.setTranslationY(target, 0);
-        ViewCompat.setRotation(target, 0);
-        ViewCompat.setRotationY(target, 0);
-        ViewCompat.setRotationX(target, 0);
-        ViewCompat.setPivotX(target, target.getMeasuredWidth() / 2.0f);
-        ViewCompat.setPivotY(target, target.getMeasuredHeight() / 2.0f);
+        if (target != null) {
+            ViewCompat.setAlpha(target, 1);
+            ViewCompat.setScaleX(target, 1);
+            ViewCompat.setScaleY(target, 1);
+            ViewCompat.setTranslationX(target, 0);
+            ViewCompat.setTranslationY(target, 0);
+            ViewCompat.setRotation(target, 0);
+            ViewCompat.setRotationY(target, 0);
+            ViewCompat.setRotationX(target, 0);
+            ViewCompat.setPivotX(target, target.getMeasuredWidth() / 2.0f);
+            ViewCompat.setPivotY(target, target.getMeasuredHeight() / 2.0f);
+        }
     }
 
     /**
      * start to animate
      */
     public void start() {
-        mAnimatorSet.setDuration(mDuration);
         mAnimatorSet.start();
     }
 
     public BaseViewAnimator setDuration(long duration) {
         mDuration = duration;
+        mAnimatorSet.setDuration(mDuration);
         return this;
     }
 

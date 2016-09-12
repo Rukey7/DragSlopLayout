@@ -5,6 +5,7 @@ import android.content.res.TypedArray;
 import android.support.annotation.IntDef;
 import android.support.v4.view.ViewCompat;
 import android.support.v4.view.ViewPager;
+import android.support.v4.widget.NestedScrollView;
 import android.support.v4.widget.ScrollerCompat;
 import android.support.v4.widget.ViewDragHelper;
 import android.util.AttributeSet;
@@ -14,8 +15,10 @@ import android.view.ViewParent;
 import android.view.animation.BounceInterpolator;
 import android.view.animation.Interpolator;
 import android.widget.FrameLayout;
+import android.widget.ScrollView;
 
 import com.dl7.drag.animate.AnimatorPresenter;
+import com.dl7.drag.animate.CustomViewAnimator;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -40,7 +43,7 @@ public class DragSlopLayout extends FrameLayout {
     static final int STATUS_SCROLL = 104;
 
     // ViewDragHelper 的敏感度
-    private static final float TOUCH_SLOP_SENSITIVITY = 1.f;
+    private static final float TOUCH_SLOP_SENSITIVITY = 1.0f;
     // 判断快速滑动的速率
     private static final float FLING_VELOCITY = 2000;
     // 下坠动画时间
@@ -83,6 +86,10 @@ public class DragSlopLayout extends FrameLayout {
     private int mAutoAnimateDelay = 1000;
     // 是否手动执行了退出动画，如果为真则不再执行自动进入动画
     private boolean mIsDoOutAnim = false;
+    // 是否设置自定义动画，true 的话关闭 ViewPager 联动动画
+    private boolean mIsCustomAnimator = false;
+    // 关联的 ScrollView，实现垂直方向的平滑滚动
+    private View mAttachScrollView;
 
 
     public DragSlopLayout(Context context) {
@@ -132,6 +139,23 @@ public class DragSlopLayout extends FrameLayout {
     }
 
     @Override
+    protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
+        super.onMeasure(widthMeasureSpec, heightMeasureSpec);
+
+        int maxHeight = getMeasuredHeight() * 2 / 3;
+        MarginLayoutParams lp;
+        View childView = getChildAt(1);
+        lp = (MarginLayoutParams) childView.getLayoutParams();
+        int childWidth = childView.getMeasuredWidth();
+        int childHeight = childView.getMeasuredHeight();
+        if (childHeight > maxHeight) {
+            MeasureSpec.makeMeasureSpec(childWidth - lp.leftMargin - lp.rightMargin, MeasureSpec.EXACTLY);
+            childView.measure(MeasureSpec.makeMeasureSpec(childWidth - lp.leftMargin - lp.rightMargin, MeasureSpec.EXACTLY),
+                    MeasureSpec.makeMeasureSpec(maxHeight - lp.topMargin - lp.bottomMargin, MeasureSpec.EXACTLY));
+        }
+    }
+
+    @Override
     protected void onLayout(boolean changed, int l, int t, int r, int b) {
         super.onLayout(changed, l, t, r, b);
         int childCount = getChildCount();
@@ -141,12 +165,6 @@ public class DragSlopLayout extends FrameLayout {
         }
 
         MarginLayoutParams lp;
-//        View mainView = getChildAt(0);
-//        lp = (MarginLayoutParams) mainView.getLayoutParams();
-//        int width = mainView.getMeasuredWidth();
-//        int height = mainView.getMeasuredHeight();
-//        mainView.layout(lp.leftMargin, lp.topMargin, lp.leftMargin + width, lp.topMargin + height);
-
         View childView = getChildAt(1);
         lp = (MarginLayoutParams) childView.getLayoutParams();
         int childWidth = childView.getMeasuredWidth();
@@ -186,13 +204,13 @@ public class DragSlopLayout extends FrameLayout {
     @Override
     public boolean onInterceptTouchEvent(MotionEvent ev) {
         boolean isIntercept = mDragHelper.shouldInterceptTouchEvent(ev);
-        if (mDragStatus == STATUS_EXPANDED && mMode == MODE_DRAG) {
+        if (_isNeedIntercept(ev)) {
             isIntercept = true;
-        } else if (mDragHelper.isViewUnder(mDragView, (int) ev.getX(), (int) ev.getY()) && mMode == MODE_DRAG) {
+        } else
+        if (mDragHelper.isViewUnder(mDragView, (int) ev.getX(), (int) ev.getY()) && mMode == MODE_DRAG) {
             if (!mScroller.isFinished()) {
                 mScroller.abortAnimation();
             }
-            isIntercept = true;
         }
         if (mDragStatus == STATUS_EXIT) {
             getHandler().removeCallbacks(mShowRunnable);
@@ -201,10 +219,18 @@ public class DragSlopLayout extends FrameLayout {
     }
 
     @Override
+    public boolean dispatchTouchEvent(MotionEvent ev) {
+        if (mAttachScrollView != null) {
+        }
+        return super.dispatchTouchEvent(ev);
+    }
+
+    @Override
     public boolean onTouchEvent(MotionEvent event) {
         mDragHelper.processTouchEvent(event);
         return mIsDrag;
     }
+
 
     private ViewDragHelper.Callback callback = new ViewDragHelper.Callback() {
 
@@ -232,11 +258,15 @@ public class DragSlopLayout extends FrameLayout {
                     ViewCompat.postInvalidateOnAnimation(DragSlopLayout.this);
                 }
             } else if (yvel > 0) {
-                mDragHelper.settleCapturedViewAt(0, mCollapsedTop);
-                ViewCompat.postInvalidateOnAnimation(DragSlopLayout.this);
+                if (!_flingScrollView(yvel)) {
+                    mDragHelper.settleCapturedViewAt(0, mCollapsedTop);
+                    ViewCompat.postInvalidateOnAnimation(DragSlopLayout.this);
+                }
             } else {
-                mDragHelper.settleCapturedViewAt(0, mExpandedTop);
-                ViewCompat.postInvalidateOnAnimation(DragSlopLayout.this);
+                if (!_flingScrollView(yvel)) {
+                    mDragHelper.settleCapturedViewAt(0, mExpandedTop);
+                    ViewCompat.postInvalidateOnAnimation(DragSlopLayout.this);
+                }
             }
             requestDisallowInterceptTouchEvent(false);
         }
@@ -268,6 +298,10 @@ public class DragSlopLayout extends FrameLayout {
 
         @Override
         public int clampViewPositionVertical(View child, int top, int dy) {
+            if (mAttachScrollView.getScrollY() > 0 || (mDragView.getTop() == mExpandedTop && dy < 0)) {
+                mAttachScrollView.scrollBy(0, -dy);
+                return mExpandedTop;
+            }
             int newTop = Math.max(mExpandedTop, top);
             newTop = Math.min(mCollapsedTop, newTop);
             return newTop;
@@ -276,6 +310,11 @@ public class DragSlopLayout extends FrameLayout {
         @Override
         public int clampViewPositionHorizontal(View child, int left, int dx) {
             return 0;
+        }
+
+        @Override
+        public int getViewVerticalDragRange(View child) {
+            return child == mDragView ? child.getHeight() : 0;
         }
     };
 
@@ -319,6 +358,11 @@ public class DragSlopLayout extends FrameLayout {
 
     /*********************************** Inside ********************************************/
 
+    @Retention(RetentionPolicy.SOURCE)
+    @IntDef({STATUS_EXPANDED, STATUS_COLLAPSED, STATUS_EXIT, STATUS_SCROLL})
+    @interface DragStatus {
+    }
+
     /**
      * 切换状态
      */
@@ -332,28 +376,6 @@ public class DragSlopLayout extends FrameLayout {
         } else {
             mDragStatus = STATUS_SCROLL;
         }
-    }
-
-    /**
-     * 判断视图是否为 ViewPager 或它的子类
-     *
-     * @param view View
-     * @return
-     */
-    private boolean _isViewPager(View view) {
-        boolean isViewPager = false;
-        if (view instanceof ViewPager) {
-            isViewPager = true;
-        } else {
-            ViewParent parent = view.getParent();
-            while (parent != null) {
-                if (parent instanceof ViewPager) {
-                    isViewPager = true;
-                    break;
-                }
-            }
-        }
-        return isViewPager;
     }
 
     /**
@@ -413,6 +435,74 @@ public class DragSlopLayout extends FrameLayout {
         }
     };
 
+    /*********************************** ScrollView ********************************************/
+
+    /**
+     * 设置关联的 ScrollView 如果有的话，目前只支持 ScrollView 和 NestedScrollView 及其自视图
+     * @param attachScrollView  ScrollView or NestedScrollView
+     */
+    public void setAttachScrollView(View attachScrollView) {
+        if (!_isScrollView(attachScrollView)) {
+            throw new IllegalArgumentException("The view must be ScrollView or NestedScrollView.");
+        }
+        mAttachScrollView = attachScrollView;
+    }
+
+    /**
+     * 如果点击在关联的 ScrollView 区域则由父类 DragSlopLayout 中断事件接收，并全权控制处理 ScrollView
+     * @param ev    点击事件
+     * @return
+     */
+    private boolean _isNeedIntercept(MotionEvent ev) {
+        if (mAttachScrollView == null) {
+            return false;
+        }
+        int y = (int) ev.getY() - mDragView.getTop();
+        if (mDragHelper.isViewUnder(mAttachScrollView, (int) ev.getX(), y) && mMode == MODE_DRAG) {
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * 滑动 ScrollView
+     * @param yvel  滑动速度
+     * @return
+     */
+    private boolean _flingScrollView(float yvel) {
+        if (mAttachScrollView == null || mAttachScrollView.getScrollY() == 0) {
+            return false;
+        }
+        if (mAttachScrollView instanceof ScrollView) {
+            ((ScrollView) mAttachScrollView).fling((int) -yvel);
+        } else if (mAttachScrollView instanceof NestedScrollView) {
+            ((NestedScrollView) mAttachScrollView).fling((int) -yvel);
+        }
+        return true;
+    }
+
+    /**
+     * 判断视图是否为 ScrollView or NestedScrollView 或它的子类
+     *
+     * @param view View
+     * @return
+     */
+    private boolean _isScrollView(View view) {
+        boolean isScrollView = false;
+        if (view instanceof ScrollView || view instanceof NestedScrollView) {
+            isScrollView = true;
+        } else {
+            ViewParent parent = view.getParent();
+            while (parent != null) {
+                if (parent instanceof ScrollView || parent instanceof NestedScrollView) {
+                    isScrollView = true;
+                    break;
+                }
+            }
+        }
+        return isScrollView;
+    }
+
     /*********************************** ViewPager ********************************************/
 
     /**
@@ -439,7 +529,7 @@ public class DragSlopLayout extends FrameLayout {
 
             @Override
             public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
-                if (status != ViewPager.SCROLL_STATE_IDLE && mMode != MODE_FIX_ALWAYS) {
+                if (status != ViewPager.SCROLL_STATE_IDLE && mMode != MODE_FIX_ALWAYS && !mIsCustomAnimator) {
                     // 判断拖拽过界的方向
                     if (Math.abs(positionOffset - mLastOffset) > 0.8f &&
                             status == ViewPager.SCROLL_STATE_DRAGGING) {
@@ -468,9 +558,10 @@ public class DragSlopLayout extends FrameLayout {
 
             @Override
             public void onPageScrollStateChanged(int state) {
-                if (state == ViewPager.SCROLL_STATE_IDLE) {
+                if (state == ViewPager.SCROLL_STATE_IDLE && !mIsCustomAnimator) {
                     isRightSlide = true;
                     mLastOffset = 0;
+                    // 如果手动调用退出动画则不做自动启动动画
                     if (mDragStatus == STATUS_EXIT && !mIsDoOutAnim) {
                         _showDragView(mAutoAnimateDelay);
                     }
@@ -487,6 +578,28 @@ public class DragSlopLayout extends FrameLayout {
 
     public void setAutoAnimateDelay(int autoAnimateDelay) {
         mAutoAnimateDelay = autoAnimateDelay;
+    }
+
+    /**
+     * 判断视图是否为 ViewPager 或它的子类
+     *
+     * @param view View
+     * @return
+     */
+    private boolean _isViewPager(View view) {
+        boolean isViewPager = false;
+        if (view instanceof ViewPager) {
+            isViewPager = true;
+        } else {
+            ViewParent parent = view.getParent();
+            while (parent != null) {
+                if (parent instanceof ViewPager) {
+                    isViewPager = true;
+                    break;
+                }
+            }
+        }
+        return isViewPager;
     }
 
     /***********************************
@@ -513,6 +626,7 @@ public class DragSlopLayout extends FrameLayout {
     }
 
     public void setAnimatorMode(@AnimatorMode int animatorMode) {
+        mIsCustomAnimator = false;
         mAnimPresenter.setAnimatorMode(animatorMode);
     }
 
@@ -540,24 +654,30 @@ public class DragSlopLayout extends FrameLayout {
         mAnimPresenter.setInterpolator(interpolator);
     }
 
+    /**
+     * 启动进入动画
+     */
     public void startInAnim() {
         mIsDoOutAnim = false;
         mAnimPresenter.startInAnim(mDragView);
     }
 
+    /**
+     * 启动退出动画
+     * 注意：调用了退出动画则默认关闭自动启动动画效果
+     */
     public void startOutAnim() {
         mIsDoOutAnim = true;
         mAnimPresenter.startOutAnim(mDragView);
     }
 
-    /***********************************
-     * interface
-     ********************************************/
-
-
-    @Retention(RetentionPolicy.SOURCE)
-    @IntDef({STATUS_EXPANDED, STATUS_COLLAPSED, STATUS_EXIT, STATUS_SCROLL})
-    @interface DragStatus {
+    /**
+     * 设置自定义动画
+     * @param inAnimator    进入动画
+     * @param outAnimator   退出动画
+     */
+    public void setCustomAnimator(CustomViewAnimator inAnimator, CustomViewAnimator outAnimator) {
+        mIsCustomAnimator = true;
+        mAnimPresenter.setCustomAnimator(inAnimator, outAnimator);
     }
-
 }
