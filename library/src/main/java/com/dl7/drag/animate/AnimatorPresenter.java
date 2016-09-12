@@ -158,7 +158,7 @@ public final class AnimatorPresenter {
         float translationY = 0;
         float rotationX = 0;
         float rotationY = 0;
-        float scale = 1;
+        float scale = 1.0f;
 
         switch (mAnimatorMode) {
             case DragSlopLayout.SLIDE_BOTTOM:

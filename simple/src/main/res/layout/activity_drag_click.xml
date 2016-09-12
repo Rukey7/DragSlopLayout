@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.dl7.drag.DragSlopLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    app:mode="drag"
+    app:fix_height="60dp"
+    tools:context="com.dl7.simple.drag.activity.DragClickActivity">
+
+    <ImageView
+        android:src="@mipmap/pic5"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"/>
+
+    <LinearLayout
+        android:id="@+id/ll_view"
+        android:orientation="vertical"
+        android:background="@color/photo_bg"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <LinearLayout
+            android:orientation="horizontal"
+            android:layout_width="match_parent"
+            android:padding="10dp"
+            android:layout_height="60dp">
+
+            <TextView
+                android:id="@+id/tv_title"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="wrap_content"
+                android:maxLines="1"
+                android:text="这是标题"
+                android:layout_gravity="center"
+                android:textColor="@android:color/white"
+                android:textSize="22sp"/>
+        </LinearLayout>
+
+        <Button
+            android:id="@+id/btn_one"
+            android:text="测试按钮"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"/>
+
+        <Button
+            android:id="@+id/btn_two"
+            android:text="测试按钮"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"/>
+
+        <Button
+            android:id="@+id/btn_three"
+            android:text="测试按钮"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"/>
+    </LinearLayout>
+</com.dl7.drag.DragSlopLayout>

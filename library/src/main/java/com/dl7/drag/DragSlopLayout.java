@@ -305,9 +305,11 @@ public class DragSlopLayout extends FrameLayout {
 
         @Override
         public int clampViewPositionVertical(View child, int top, int dy) {
-            if (mAttachScrollView.getScrollY() > 0 || (mDragView.getTop() == mExpandedTop && dy < 0)) {
-                mAttachScrollView.scrollBy(0, -dy);
-                return mExpandedTop;
+            if (mAttachScrollView != null) {
+                if (mAttachScrollView.getScrollY() > 0 || (mDragView.getTop() == mExpandedTop && dy < 0)) {
+                    mAttachScrollView.scrollBy(0, -dy);
+                    return mExpandedTop;
+                }
             }
             int newTop = Math.max(mExpandedTop, top);
             newTop = Math.min(mCollapsedTop, newTop);

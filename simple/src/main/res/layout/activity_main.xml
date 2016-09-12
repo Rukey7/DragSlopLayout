@@ -1,73 +1,47 @@
-<RelativeLayout
-    android:id="@+id/content"
+<LinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:orientation="vertical"
     tools:context=".MainActivity">
 
-    <View
-        android:id="@+id/spacer"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        android:layout_centerInParent="true"/>
-
-    <ImageView
-        android:id="@+id/right_top"
+    <android.support.v7.widget.Toolbar
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+        android:id="@+id/tool_bar"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_above="@id/spacer"
-        android:layout_alignLeft="@id/spacer"
-        android:contentDescription="@null"
-        android:scaleType="centerCrop"
-        android:src="@mipmap/demo"/>
-
-    <ImageView
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_above="@id/spacer"
-        android:layout_alignRight="@id/spacer"
-        android:contentDescription="@null"
-        android:scaleType="centerCrop"
-        android:src="@mipmap/demo"/>
-
-    <ImageView
-        android:id="@+id/right_bottom"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_alignLeft="@id/spacer"
-        android:layout_below="@id/spacer"
-        android:contentDescription="@null"
-        android:scaleType="centerCrop"
-        android:src="@mipmap/demo"/>
-
-    <ImageView
-        android:id="@+id/left_bottom"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_alignRight="@id/spacer"
-        android:layout_below="@id/spacer"
-        android:contentDescription="@null"
-        android:scaleType="centerCrop"
-        android:src="@mipmap/demo"/>
-
-    <ImageView
-        android:id="@+id/overlay"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:contentDescription="@null"/>
+        android:layout_height="?attr/actionBarSize"
+        android:background="?attr/colorPrimary"
+        app:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"/>
 
     <Button
-        android:id="@+id/button"
+        android:id="@+id/btn_drag"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:background="@null"
-        android:layout_centerInParent="true"
-        android:text="@string/app_name"
-        android:elevation="10dp"
-        android:textColor="@android:color/black"
-        android:textSize="88sp"
-        android:textStyle="bold"/>
+        android:layout_marginTop="20dp"
+        android:text="Drag and ViewPager"
+        android:textAllCaps="false"/>
 
-</RelativeLayout>
+    <Button
+        android:id="@+id/btn_animate"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Animate and ViewPager"
+        android:textAllCaps="false"/>
+
+    <Button
+        android:id="@+id/btn_fix"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Fix and ViewPager"
+        android:textAllCaps="false"/>
+
+    <Button
+        android:id="@+id/btn_other"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Drag and Click"
+        android:textAllCaps="false"/>
+</LinearLayout>
 

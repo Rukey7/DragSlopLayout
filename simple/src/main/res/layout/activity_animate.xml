@@ -7,6 +7,7 @@
     android:layout_height="match_parent"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     app:mode="animate"
+    android:background="@android:color/black"
     tools:context="com.dl7.simple.drag.activity.AnimateActivity">
 
     <android.support.v4.view.ViewPager
@@ -52,4 +53,13 @@
             android:layout_margin="5dp"
             android:src="@mipmap/ic_share_white_36dp"/>
     </LinearLayout>
+
+    <android.support.v7.widget.Toolbar
+        android:id="@+id/tool_bar"
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+        android:layout_width="match_parent"
+        android:layout_height="?attr/actionBarSize"
+        android:background="@color/photo_bg"
+        app:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar" />
 </com.dl7.drag.DragSlopLayout>
