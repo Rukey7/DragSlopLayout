@@ -2,13 +2,13 @@
 <com.dl7.drag.DragSlopLayout
     android:id="@+id/drag_layout"
     xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    app:mode="drag"
-    app:fix_height="80dp"
     android:background="@android:color/black"
+    app:fix_height="80dp"
+    app:mode="drag"
     tools:context="com.dl7.simple.drag.activity.DragActivity">
 
     <android.support.v4.view.ViewPager
@@ -17,50 +17,50 @@
         android:layout_height="match_parent"/>
 
     <LinearLayout
-        android:orientation="vertical"
-        android:background="@color/photo_bg"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
+        android:layout_height="wrap_content"
+        android:background="@color/photo_bg"
+        android:orientation="vertical">
 
         <LinearLayout
-            android:orientation="horizontal"
             android:layout_width="match_parent"
-            android:padding="10dp"
-            android:layout_height="60dp">
+            android:layout_height="60dp"
+            android:orientation="horizontal"
+            android:padding="10dp">
 
             <TextView
                 android:id="@+id/tv_title"
                 android:layout_width="0dp"
-                android:layout_weight="1"
                 android:layout_height="wrap_content"
-                android:maxLines="1"
                 android:layout_gravity="center"
+                android:layout_weight="1"
+                android:maxLines="1"
                 android:textColor="@android:color/white"
                 android:textSize="22sp"/>
 
             <TextView
                 android:id="@+id/tv_index"
-                android:textColor="@android:color/white"
-                android:layout_gravity="center"
-                android:textSize="18sp"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content"/>
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:textColor="@android:color/white"
+                android:textSize="18sp"/>
 
             <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
                 android:text="/"
                 android:textColor="@android:color/white"
-                android:textSize="18sp"
-                android:layout_gravity="center"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"/>
+                android:textSize="18sp"/>
 
             <TextView
                 android:id="@+id/tv_count"
-                android:textColor="@android:color/white"
-                android:textSize="14sp"
-                android:layout_gravity="center"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content"/>
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:textColor="@android:color/white"
+                android:textSize="14sp"/>
         </LinearLayout>
 
         <ScrollView
@@ -79,6 +79,7 @@
         </ScrollView>
     </LinearLayout>
 
+
     <android.support.v7.widget.Toolbar
         android:id="@+id/tool_bar"
         xmlns:android="http://schemas.android.com/apk/res/android"
@@ -86,5 +87,5 @@
         android:layout_width="match_parent"
         android:layout_height="?attr/actionBarSize"
         android:background="@color/photo_bg"
-        app:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar" />
+        app:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"/>
 </com.dl7.drag.DragSlopLayout>

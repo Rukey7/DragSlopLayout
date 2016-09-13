@@ -35,13 +35,13 @@ public class DragSlopLayout extends FrameLayout {
     public static final int MODE_ANIMATE = 3;
 
     // 展开
-    static final int STATUS_EXPANDED = 101;
+    static final int STATUS_EXPANDED = 1001;
     // 收缩
-    static final int STATUS_COLLAPSED = 102;
+    static final int STATUS_COLLAPSED = 1002;
     // 退出
-    static final int STATUS_EXIT = 103;
+    static final int STATUS_EXIT = 1003;
     // 滚动
-    static final int STATUS_SCROLL = 104;
+    static final int STATUS_SCROLL = 1004;
 
     // ViewDragHelper 的敏感度
     private static final float TOUCH_SLOP_SENSITIVITY = 1.0f;
@@ -72,7 +72,6 @@ public class DragSlopLayout extends FrameLayout {
     // 是否有 post 显示动画 Runnable
     private boolean mHasShowRunnable = false;
 
-    private Context mContext;
     // 布局的第1个子视图
     private View mMainView;
     // 可拖拽的视图，为布局的第2个子视图
@@ -111,7 +110,6 @@ public class DragSlopLayout extends FrameLayout {
     }
 
     private void _init(Context context, AttributeSet attrs) {
-        mContext = context;
         mDragHelper = ViewDragHelper.create(this, TOUCH_SLOP_SENSITIVITY, callback);
         mFallBoundScroller = ScrollerCompat.create(context, new BounceInterpolator());
         mComeBackScroller = ScrollerCompat.create(context, new DecelerateInterpolator());
@@ -278,13 +276,6 @@ public class DragSlopLayout extends FrameLayout {
             requestDisallowInterceptTouchEvent(false);
         }
 
-        /**
-         * 检测 ViewDrag 状态变化，eg：
-         * STATE_IDLE       闲置、停止
-         * STATE_DRAGGING   拖拽中
-         * STATE_SETTLING   滚动状态(描述不是很确切)，比如拖拽放手后在onViewReleased()调用smoothSlideViewTo()控制View移动的时候
-         * @param state
-         */
         @Override
         public void onViewDragStateChanged(int state) {
             super.onViewDragStateChanged(state);
@@ -296,6 +287,8 @@ public class DragSlopLayout extends FrameLayout {
         @Override
         public void onViewPositionChanged(View changedView, int left, int top, int dx, int dy) {
             super.onViewPositionChanged(changedView, left, top, dx, dy);
+            float percent = (mCollapsedTop - top) * 1.0f / (mCollapsedTop - mExpandedTop);
+            mDragListener.onDragScrolled(mHeight - top, percent);
         }
 
         @Override
@@ -622,9 +615,7 @@ public class DragSlopLayout extends FrameLayout {
         return isViewPager;
     }
 
-    /***********************************
-     * Animation
-     ********************************************/
+    /************************************ Animation ********************************************/
 
     public static final int SLIDE_BOTTOM = 101;
     public static final int SLIDE_LEFT = 102;
@@ -699,5 +690,22 @@ public class DragSlopLayout extends FrameLayout {
     public void setCustomAnimator(CustomViewAnimator inAnimator, CustomViewAnimator outAnimator) {
         mIsCustomAnimator = true;
         mAnimPresenter.setCustomAnimator(inAnimator, outAnimator);
+    }
+
+    /************************************ interface ********************************************/
+
+    private OnDragSlopListener mDragListener;
+
+    public interface OnDragSlopListener {
+        /**
+         *
+         * @param visibleHeight
+         * @param percent
+         */
+        void onDragScrolled(int visibleHeight, float percent);
+    }
+
+    public void setDragListener(OnDragSlopListener dragListener) {
+        mDragListener = dragListener;
     }
 }
