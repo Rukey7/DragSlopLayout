@@ -4,6 +4,7 @@ import android.annotation.SuppressLint;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
+import android.graphics.Matrix;
 import android.graphics.PixelFormat;
 import android.graphics.drawable.Drawable;
 import android.os.Build;
@@ -48,6 +49,26 @@ final public class BitmapUtils {
         drawable.draw(canvas);
         return bitmap;
 
+    }
+
+    /**
+     * 放大缩小图片
+     *
+     * @param bitmap 源Bitmap
+     * @param w 宽
+     * @param h 高
+     * @return 目标Bitmap
+     */
+    public static Bitmap zoom(Bitmap bitmap, int w, int h) {
+        int width = bitmap.getWidth();
+        int height = bitmap.getHeight();
+        Matrix matrix = new Matrix();
+        float scaleWidht = ((float) w / width);
+        float scaleHeight = ((float) h / height);
+        matrix.postScale(scaleWidht, scaleHeight);
+        Bitmap newbmp = Bitmap.createBitmap(bitmap, 0, 0, width, height,
+                matrix, true);
+        return newbmp;
     }
 
     /**

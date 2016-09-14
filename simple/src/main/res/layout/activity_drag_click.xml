@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <com.dl7.drag.DragSlopLayout
+    android:id="@+id/drag_layout"
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
@@ -10,7 +11,8 @@
     tools:context="com.dl7.simple.drag.activity.DragClickActivity">
 
     <ImageView
-        android:src="@mipmap/pic5"
+        android:id="@+id/iv_photo"
+        android:src="@mipmap/pic1"
         android:layout_width="match_parent"
         android:layout_height="match_parent"/>
 

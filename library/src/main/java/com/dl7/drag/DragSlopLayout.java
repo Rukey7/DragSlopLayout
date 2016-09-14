@@ -2,15 +2,29 @@ package com.dl7.drag;
 
 import android.content.Context;
 import android.content.res.TypedArray;
+import android.graphics.Bitmap;
+import android.graphics.Canvas;
+import android.graphics.Color;
+import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.ClipDrawable;
+import android.graphics.drawable.ColorDrawable;
+import android.graphics.drawable.Drawable;
+import android.os.Build;
 import android.support.annotation.IntDef;
 import android.support.v4.view.ViewCompat;
 import android.support.v4.view.ViewPager;
 import android.support.v4.widget.NestedScrollView;
 import android.support.v4.widget.ScrollerCompat;
 import android.support.v4.widget.ViewDragHelper;
+import android.support.v8.renderscript.Allocation;
+import android.support.v8.renderscript.Element;
+import android.support.v8.renderscript.RenderScript;
+import android.support.v8.renderscript.ScriptIntrinsicBlur;
 import android.util.AttributeSet;
+import android.view.Gravity;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.ViewParent;
 import android.view.animation.BounceInterpolator;
 import android.view.animation.DecelerateInterpolator;
@@ -74,7 +88,9 @@ public class DragSlopLayout extends FrameLayout {
 
     // 布局的第1个子视图
     private View mMainView;
-    // 可拖拽的视图，为布局的第2个子视图
+    // 新增模糊视图，用来处理动态模糊效果，为布局的第2个子视图
+    private View mBlurView;
+    // 可拖拽的视图，为布局的第3个子视图
     private View mDragView;
     // 拖拽帮助类
     private ViewDragHelper mDragHelper;
@@ -122,7 +138,9 @@ public class DragSlopLayout extends FrameLayout {
         if (mMode == MODE_DRAG) {
             mDragStatus = STATUS_COLLAPSED;
         }
-        mAnimPresenter = new AnimatorPresenter();
+        if (mMode == MODE_ANIMATE) {
+            mAnimPresenter = new AnimatorPresenter();
+        }
     }
 
     @Override
@@ -133,8 +151,15 @@ public class DragSlopLayout extends FrameLayout {
             // DragLayout 只能且必须包含两个子视图，第一个为主视图，另一个为可拖拽的视图
             throw new IllegalArgumentException("DragLayout must contains two sub-views.");
         }
+
+        mBlurView = new View(getContext());
+        mBlurView.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.MATCH_PARENT));
+        addView(mBlurView, 1);
+        mBlurView.setVisibility(GONE);
+
         mMainView = getChildAt(0);
-        mDragView = getChildAt(1);
+        mDragView = getChildAt(2);
     }
 
     @Override
@@ -151,7 +176,7 @@ public class DragSlopLayout extends FrameLayout {
             // 未设置最大高度则为布局高度的 2/3
             mMaxHeight = getMeasuredHeight() * 2 / 3;
         }
-        View childView = getChildAt(1);
+        View childView = getChildAt(2);
         MarginLayoutParams lp = (MarginLayoutParams) childView.getLayoutParams();
         int childWidth = childView.getMeasuredWidth();
         int childHeight = childView.getMeasuredHeight();
@@ -168,7 +193,7 @@ public class DragSlopLayout extends FrameLayout {
         super.onLayout(changed, l, t, r, b);
 
         MarginLayoutParams lp;
-        View childView = getChildAt(1);
+        View childView = getChildAt(2);
         lp = (MarginLayoutParams) childView.getLayoutParams();
         int childWidth = childView.getMeasuredWidth();
         int childHeight = childView.getMeasuredHeight();
@@ -204,6 +229,19 @@ public class DragSlopLayout extends FrameLayout {
         mCollapsedTop = b - mFixHeight;
     }
 
+    @Override
+    protected void onDetachedFromWindow() {
+        super.onDetachedFromWindow();
+        _stopAllScroller();
+        if (mAnimPresenter != null) {
+            mAnimPresenter.stopAllAnimator();
+        }
+        if (mBitmapToBlur != null) {
+            mBitmapToBlur.recycle();
+            mBitmapToBlur = null;
+        }
+    }
+
     /***********************************
      * ViewDragHelper
      ********************************************/
@@ -213,21 +251,14 @@ public class DragSlopLayout extends FrameLayout {
         boolean isIntercept = mDragHelper.shouldInterceptTouchEvent(ev);
         if (_isNeedIntercept(ev)) {
             isIntercept = true;
-        } else
-        if (mDragHelper.isViewUnder(mDragView, (int) ev.getX(), (int) ev.getY()) && mMode == MODE_DRAG) {
+        } else if (mDragHelper.isViewUnder(mDragView, (int) ev.getX(), (int) ev.getY()) && mMode == MODE_DRAG) {
+            // 处于拖拽模式且点击到拖拽视图则停止滚动
             _stopAllScroller();
         }
         if (mDragStatus == STATUS_EXIT) {
             getHandler().removeCallbacks(mShowRunnable);
         }
         return isIntercept;
-    }
-
-    @Override
-    public boolean dispatchTouchEvent(MotionEvent ev) {
-        if (mAttachScrollView != null) {
-        }
-        return super.dispatchTouchEvent(ev);
     }
 
     @Override
@@ -287,8 +318,8 @@ public class DragSlopLayout extends FrameLayout {
         @Override
         public void onViewPositionChanged(View changedView, int left, int top, int dx, int dy) {
             super.onViewPositionChanged(changedView, left, top, dx, dy);
-            float percent = (mCollapsedTop - top) * 1.0f / (mCollapsedTop - mExpandedTop);
-            mDragListener.onDragScrolled(mHeight - top, percent);
+            final float percent = (mCollapsedTop - top) * 1.0f / (mCollapsedTop - mExpandedTop);
+            _dragPositionChanged(mHeight - top, percent);
         }
 
         @Override
@@ -325,6 +356,8 @@ public class DragSlopLayout extends FrameLayout {
         if (mDragHelper.continueSettling(true) ||
                 _continueSettling(mFallBoundScroller) || _continueSettling(mComeBackScroller)) {
             mDragStatus = STATUS_SCROLL;
+            final float percent = (mCollapsedTop - mDragView.getTop()) * 1.0f / (mCollapsedTop - mExpandedTop);
+            _dragPositionChanged(mHeight - mDragView.getTop(), percent);
             ViewCompat.postInvalidateOnAnimation(this);
         }
         super.computeScroll();
@@ -371,7 +404,9 @@ public class DragSlopLayout extends FrameLayout {
         }
     }
 
-    /*********************************** Inside ********************************************/
+    /***********************************
+     * Inside
+     ********************************************/
 
     @Retention(RetentionPolicy.SOURCE)
     @IntDef({STATUS_EXPANDED, STATUS_COLLAPSED, STATUS_EXIT, STATUS_SCROLL})
@@ -448,11 +483,29 @@ public class DragSlopLayout extends FrameLayout {
         }
     };
 
+    /**
+     * 拖拽位移监听
+     *
+     * @param visibleHeight 当前可见高度
+     * @param percent       百分比
+     */
+    private void _dragPositionChanged(int visibleHeight, float percent) {
+        if (mEnableBlur && mBlurDrawable != null) {
+            if (visibleHeight < mFixHeight) {
+                return;
+            }
+            final int blurLevel = (int) ((visibleHeight * 1.0f / mMainView.getHeight()) * 10000);
+            mBlurDrawable.setLevel(blurLevel);
+            mBlurDrawable.setAlpha((int) (percent * 255));
+        }
+    }
+
     /*********************************** ScrollView ********************************************/
 
     /**
      * 设置关联的 ScrollView 如果有的话，目前只支持 ScrollView 和 NestedScrollView 及其自视图
-     * @param attachScrollView  ScrollView or NestedScrollView
+     *
+     * @param attachScrollView ScrollView or NestedScrollView
      */
     public void setAttachScrollView(View attachScrollView) {
         if (!_isScrollView(attachScrollView)) {
@@ -463,7 +516,8 @@ public class DragSlopLayout extends FrameLayout {
 
     /**
      * 如果点击在关联的 ScrollView 区域则由父类 DragSlopLayout 中断事件接收，并全权控制处理 ScrollView
-     * @param ev    点击事件
+     *
+     * @param ev 点击事件
      * @return
      */
     private boolean _isNeedIntercept(MotionEvent ev) {
@@ -474,12 +528,16 @@ public class DragSlopLayout extends FrameLayout {
         if (mDragHelper.isViewUnder(mAttachScrollView, (int) ev.getX(), y) && mMode == MODE_DRAG) {
             return true;
         }
+        if (mEnableBlur && mDragStatus == STATUS_EXPANDED) {
+            return true;
+        }
         return false;
     }
 
     /**
      * 滑动 ScrollView
-     * @param yvel  滑动速度
+     *
+     * @param yvel 滑动速度
      * @return
      */
     private boolean _flingScrollView(float yvel) {
@@ -615,7 +673,9 @@ public class DragSlopLayout extends FrameLayout {
         return isViewPager;
     }
 
-    /************************************ Animation ********************************************/
+    /************************************
+     * Animation
+     ********************************************/
 
     public static final int SLIDE_BOTTOM = 101;
     public static final int SLIDE_LEFT = 102;
@@ -684,28 +744,159 @@ public class DragSlopLayout extends FrameLayout {
 
     /**
      * 设置自定义动画
-     * @param inAnimator    进入动画
-     * @param outAnimator   退出动画
+     *
+     * @param inAnimator  进入动画
+     * @param outAnimator 退出动画
      */
     public void setCustomAnimator(CustomViewAnimator inAnimator, CustomViewAnimator outAnimator) {
         mIsCustomAnimator = true;
         mAnimPresenter.setCustomAnimator(inAnimator, outAnimator);
     }
 
-    /************************************ interface ********************************************/
+    /*************************************
+     * Blur
+     ********************************************/
 
-    private OnDragSlopListener mDragListener;
+    // 采样因数，降低需要模糊处理图片的像素，提高处理速度
+    private final static int SAMPLE_FACTOR = 4;
+    private boolean mEnableBlur = false;
+    private Canvas mBlurringCanvas;
+    private Bitmap mBitmapToBlur;
+    private ClipDrawable mBlurDrawable;
+    private RenderScript mRenderScript;
+    private ScriptIntrinsicBlur mBlurScript;
+    private Allocation mBlurInput, mBlurOutput;
+    private int mBlurredViewWidth, mBlurredViewHeight;
 
-    public interface OnDragSlopListener {
-        /**
-         *
-         * @param visibleHeight
-         * @param percent
-         */
-        void onDragScrolled(int visibleHeight, float percent);
+    /**
+     * 设置使能模糊效果
+     *
+     * @param enableBlur
+     */
+    public void setEnableBlur(boolean enableBlur) {
+        if (mEnableBlur == enableBlur) {
+            return;
+        }
+        mEnableBlur = enableBlur;
+        if (mEnableBlur) {
+            mBlurView.setVisibility(VISIBLE);
+            if (mRenderScript == null || mBlurScript == null) {
+                mRenderScript = RenderScript.create(getContext());
+                mBlurScript = ScriptIntrinsicBlur.create(mRenderScript, Element.U8_4(mRenderScript));
+                mBlurScript.setRadius(5);
+            }
+            mMainView.post(new Runnable() {
+                @Override
+                public void run() {
+                    _handleBlurInThread();
+                }
+            });
+        } else {
+            mBlurView.setVisibility(GONE);
+            if (mBitmapToBlur != null) {
+                mBitmapToBlur.recycle();
+                mBitmapToBlur = null;
+            }
+            if (mBlurDrawable != null) {
+                mBlurDrawable = null;
+            }
+        }
     }
 
-    public void setDragListener(OnDragSlopListener dragListener) {
-        mDragListener = dragListener;
+    /**
+     * 刷新模糊视图
+     */
+    public void updateBlurView() {
+        if (mEnableBlur) {
+            mBlurDrawable = null;
+            _handleBlurInThread();
+        }
+    }
+
+    /**
+     * 模糊视图
+     *
+     * @param view
+     */
+    @SuppressWarnings("deprecation")
+    private void _blurView(View view) {
+        final int width = view.getWidth();
+        final int height = view.getHeight();
+        if (width == 0 || height == 0) {
+            return;
+        }
+        if (mBlurringCanvas == null || mBitmapToBlur == null
+                || mBlurredViewWidth != width || mBlurredViewHeight != height) {
+
+            mBlurredViewWidth = width;
+            mBlurredViewHeight = height;
+            int scaledWidth = width / SAMPLE_FACTOR;
+            int scaledHeight = height / SAMPLE_FACTOR;
+
+            // The following manipulation is to avoid some RenderScript artifacts at the edge.
+            scaledWidth = scaledWidth - scaledWidth % 4 + 4;
+            scaledHeight = scaledHeight - scaledHeight % 4 + 4;
+
+            mBitmapToBlur = Bitmap.createBitmap(scaledWidth, scaledHeight, Bitmap.Config.ARGB_8888);
+            if (mBitmapToBlur == null) {
+                throw new RuntimeException("Create bitmap failure!");
+            }
+            mBlurringCanvas = new Canvas(mBitmapToBlur);
+            mBlurringCanvas.scale(1.0f / SAMPLE_FACTOR, 1.0f / SAMPLE_FACTOR);
+            mBlurInput = Allocation.createFromBitmap(mRenderScript, mBitmapToBlur,
+                    Allocation.MipmapControl.MIPMAP_NONE, Allocation.USAGE_SCRIPT);
+            mBlurOutput = Allocation.createTyped(mRenderScript, mBlurInput.getType());
+
+            // 背景为 ColorDrawable 则设置对应颜色，否则设为透明
+            if (view.getBackground() != null && view.getBackground() instanceof ColorDrawable) {
+                mBitmapToBlur.eraseColor(((ColorDrawable) view.getBackground()).getColor());
+            } else {
+                mBitmapToBlur.eraseColor(Color.TRANSPARENT);
+            }
+        }
+        // 将目标视图的背景绘制到 mBitmapToBlur
+        view.draw(mBlurringCanvas);
+        // 模糊处理
+        mBlurInput.copyFrom(mBitmapToBlur);
+        mBlurScript.setInput(mBlurInput);
+        mBlurScript.forEach(mBlurOutput);
+        mBlurOutput.copyTo(mBitmapToBlur);
+        // 放大回原图大小
+        Bitmap blurredBitmap = BitmapUtils.zoom(mBitmapToBlur, width, height);
+        // 将模糊的 Bitmap 转化为 ClipDrawable
+        Drawable drawable = new BitmapDrawable(getResources(), blurredBitmap);
+        mBlurDrawable = new ClipDrawable(drawable, Gravity.BOTTOM, ClipDrawable.VERTICAL);
+        if (mDragStatus == STATUS_EXPANDED) {
+            final int visibleHeight = mHeight - mDragView.getTop();
+            final int blurLevel = (int) ((visibleHeight * 1.0f / mMainView.getHeight()) * 10000);
+            mBlurDrawable.setLevel(blurLevel);
+            mBlurDrawable.setAlpha(255);
+        } else {
+            mBlurDrawable.setLevel(0);
+            mBlurDrawable.setAlpha(0);
+        }
+    }
+
+    /**
+     * 在线程处理图片模糊
+     */
+    private void _handleBlurInThread() {
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                _blurView(mMainView);
+                mBlurView.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        // 设置模糊背景
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
+                            mBlurView.setBackground(mBlurDrawable);
+                        } else {
+                            mBlurView.setBackgroundDrawable(mBlurDrawable);
+                        }
+                    }
+                });
+            }
+        }).start();
     }
 }

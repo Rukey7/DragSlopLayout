@@ -1,13 +1,10 @@
 package com.dl7.simple.drag.activity;
 
-import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.util.Log;
 import android.view.MenuItem;
-import android.view.View;
 import android.widget.ScrollView;
 import android.widget.TextView;
 
@@ -39,8 +36,6 @@ public class DragActivity extends AppCompatActivity {
     DragSlopLayout mDragLayout;
     @BindView(R.id.tool_bar)
     Toolbar mToolBar;
-//    @BindView(R.id.blurView)
-//    BlurView blurView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -49,7 +44,6 @@ public class DragActivity extends AppCompatActivity {
         ButterKnife.bind(this);
         setSupportActionBar(mToolBar);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-        setupBlurView();
 
         final String[] titleList = new String[]{
                 "汤姆·哈迪", "克里斯蒂安·贝尔", "马克·沃尔伯格", "威尔·史密斯", "丹泽尔·华盛顿",
@@ -62,15 +56,15 @@ public class DragActivity extends AppCompatActivity {
                 getString(R.string.DenzelWashington),
         };
         List<Integer> imgList = new ArrayList<>();
-        imgList.add(R.mipmap.img5);
-        imgList.add(R.mipmap.img5);
-        imgList.add(R.mipmap.img5);
-        imgList.add(R.mipmap.img5);
-        imgList.add(R.mipmap.img5);
+        imgList.add(R.mipmap.pic1);
+        imgList.add(R.mipmap.pic2);
+        imgList.add(R.mipmap.pic3);
+        imgList.add(R.mipmap.pic4);
+        imgList.add(R.mipmap.pic5);
         PhotoPagerAdapter mPagerAdapter = new PhotoPagerAdapter(this, imgList);
         mVpPhoto.setAdapter(mPagerAdapter);
         mDragLayout.setAttachScrollView(mSvView);
-//        mDragLayout.interactWithViewPager(true);
+        mDragLayout.interactWithViewPager(true);
 
         mTvCount.setText("" + imgList.size());
         mTvTitle.setText(titleList[0]);
@@ -83,32 +77,9 @@ public class DragActivity extends AppCompatActivity {
                 mTvTitle.setText(titleList[position]);
                 mTvIndex.setText("" + (position + 1));
                 mTvContent.setText(descList[position]);
-
             }
         });
 
-        mDragLayout.setDragListener(new DragSlopLayout.OnDragSlopListener() {
-            @Override
-            public void onDragScrolled(int visibleHeight, float percent) {
-
-                Log.e("DragSlopLayout", visibleHeight + " - "+ percent);
-            }
-        });
-    }
-
-    private void setupBlurView() {
-        final float radius = 16f;
-
-        final View decorView = getWindow().getDecorView();
-        //Activity's root View. Can also be root View of your layout
-        final View rootView = decorView.findViewById(android.R.id.content);
-        //set background, if your root layout doesn't have one
-        final Drawable windowBackground = decorView.getBackground();
-
-//        blurView.setupWith(rootView)
-//                .windowBackground(windowBackground)
-//                .blurAlgorithm(new RenderScriptBlur(this, true)) //Optional, enabled by default. User can have custom implementation
-//                .blurRadius(radius);
     }
 
     @Override

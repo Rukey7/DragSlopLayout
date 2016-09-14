@@ -43,7 +43,6 @@ public class AnimateActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_animate);
         ButterKnife.bind(this);
-        mToolBar.setTitle("美女");
         setSupportActionBar(mToolBar);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 

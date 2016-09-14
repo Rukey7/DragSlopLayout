@@ -245,4 +245,13 @@ public final class AnimatorPresenter {
     public void setInterpolator(Interpolator interpolator) {
         mInterpolator = interpolator;
     }
+
+    public void stopAllAnimator() {
+        if (mInAnimator.isRunning()) {
+            mInAnimator.cancel();
+        }
+        if (mOutAnimator.isRunning()) {
+            mOutAnimator.cancel();
+        }
+    }
 }
