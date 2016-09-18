@@ -253,9 +253,6 @@ public class DragSlopLayout extends FrameLayout {
             // 处于拖拽模式且点击到拖拽视图则停止滚动
             _stopAllScroller();
         }
-        if (mDragStatus == STATUS_EXIT) {
-            getHandler().removeCallbacks(mShowRunnable);
-        }
         return isIntercept;
     }
 
@@ -637,6 +634,10 @@ public class DragSlopLayout extends FrameLayout {
                     // 如果手动调用退出动画则不做自动启动动画
                     if (mDragStatus == STATUS_EXIT && !mIsDoOutAnim) {
                         _showDragView(mAutoAnimateDelay);
+                    }
+                } else {
+                    if (mDragStatus == STATUS_EXIT) {
+                        getHandler().removeCallbacks(mShowRunnable);
                     }
                 }
                 status = state;

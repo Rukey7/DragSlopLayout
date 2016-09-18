@@ -97,6 +97,7 @@ public class DragActivity extends BaseActivity {
         switch (item.getItemId()) {
             case R.id.item_interact:
                 mIsInteract = !mIsInteract;
+                item.setChecked(mIsInteract);
                 mDragLayout.interactWithViewPager(mIsInteract);
                 return true;
         }
