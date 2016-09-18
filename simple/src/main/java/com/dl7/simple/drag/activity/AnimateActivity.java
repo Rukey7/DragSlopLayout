@@ -156,7 +156,7 @@ public class AnimateActivity extends BaseActivity {
         mDsLayout.setCustomAnimator(new CustomViewAnimator() {
             @Override
             protected Animator doAnimator() {
-                ObjectAnimator one = ObjectAnimator.ofFloat(mIvFavorite, "translationX", mLlView.getHeight(), -100, 50, 0);
+                ObjectAnimator one = ObjectAnimator.ofFloat(mIvFavorite, "translationX", mDsLayout.getWidth(), -100, 50, 0);
                 ObjectAnimator two = ObjectAnimator.ofFloat(mIvDownload, "translationX", mDsLayout.getWidth(), -100, 50, 0);
                 two.setStartDelay(100);
                 ObjectAnimator three = ObjectAnimator.ofFloat(mIvPraise, "translationX", mDsLayout.getWidth(), -100, 50, 0);
