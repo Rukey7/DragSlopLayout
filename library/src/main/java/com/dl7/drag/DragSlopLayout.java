@@ -494,7 +494,14 @@ public class DragSlopLayout extends FrameLayout {
             if (visibleHeight < mFixHeight) {
                 return;
             }
-            final int blurLevel = (int) ((visibleHeight * 1.0f / mMainView.getHeight()) * 10000);
+            int maxHeight;
+            if (mIsBlurFull) {
+                maxHeight = mHeight - mExpandedTop;
+            } else {
+                maxHeight = mMainView.getHeight();
+            }
+            final int blurLevel = (int) ((visibleHeight * 1.0f / maxHeight) * 10000);
+//            final int blurLevel = (int) ((visibleHeight * 1.0f / mMainView.getHeight()) * 10000);
             mBlurDrawable.setLevel(blurLevel);
             mBlurDrawable.setAlpha((int) (percent * 255));
         }
@@ -698,6 +705,9 @@ public class DragSlopLayout extends FrameLayout {
 
     public void setAnimatorMode(@AnimatorMode int animatorMode) {
         mIsCustomAnimator = false;
+        if (mAnimPresenter == null) {
+            mAnimPresenter = new AnimatorPresenter();
+        }
         mAnimPresenter.setAnimatorMode(animatorMode);
     }
 
@@ -757,16 +767,49 @@ public class DragSlopLayout extends FrameLayout {
      * Blur
      ********************************************/
 
-    // 采样因数，降低需要模糊处理图片的像素，提高处理速度
-    private final static int SAMPLE_FACTOR = 4;
+    private final static int DEFAULT_SAMPLE_FACTOR = 4;
+    private final static int DEFAULT_BLUR_RADIUS = 5;
+
+    // 使能模糊
     private boolean mEnableBlur = false;
+    // 画布
     private Canvas mBlurringCanvas;
+    // 接收画布绘制的位图
     private Bitmap mBitmapToBlur;
     private ClipDrawable mBlurDrawable;
     private RenderScript mRenderScript;
     private ScriptIntrinsicBlur mBlurScript;
     private Allocation mBlurInput, mBlurOutput;
     private int mBlurredViewWidth, mBlurredViewHeight;
+    // 采样因数，降低需要模糊处理图片的像素，提高处理速度
+    private int mSampleFactor = DEFAULT_SAMPLE_FACTOR;
+    // 模糊半径
+    private int mBlurRadius = DEFAULT_BLUR_RADIUS;
+    // 是否全图模糊，默认为局部模糊即只模糊 DragView 部分
+    private boolean mIsBlurFull = false;
+
+    public int getSampleFactor() {
+        return mSampleFactor;
+    }
+
+    public void setSampleFactor(int sampleFactor) {
+        mSampleFactor = sampleFactor;
+    }
+
+    public int getBlurRadius() {
+        return mBlurRadius;
+    }
+
+    public void setBlurRadius(int blurRadius) {
+        mBlurRadius = blurRadius;
+        if (mBlurScript != null) {
+            mBlurScript.setRadius(mBlurRadius);
+        }
+    }
+
+    public void setBlurFull(boolean blurFull) {
+        mIsBlurFull = blurFull;
+    }
 
     /**
      * 设置使能模糊效果
@@ -783,7 +826,7 @@ public class DragSlopLayout extends FrameLayout {
             if (mRenderScript == null || mBlurScript == null) {
                 mRenderScript = RenderScript.create(getContext());
                 mBlurScript = ScriptIntrinsicBlur.create(mRenderScript, Element.U8_4(mRenderScript));
-                mBlurScript.setRadius(5);
+                mBlurScript.setRadius(mBlurRadius);
             }
             mMainView.post(new Runnable() {
                 @Override
@@ -818,7 +861,6 @@ public class DragSlopLayout extends FrameLayout {
      *
      * @param view
      */
-    @SuppressWarnings("deprecation")
     private void _blurView(View view) {
         final int width = view.getWidth();
         final int height = view.getHeight();
@@ -830,8 +872,8 @@ public class DragSlopLayout extends FrameLayout {
 
             mBlurredViewWidth = width;
             mBlurredViewHeight = height;
-            int scaledWidth = width / SAMPLE_FACTOR;
-            int scaledHeight = height / SAMPLE_FACTOR;
+            int scaledWidth = width / mSampleFactor;
+            int scaledHeight = height / mSampleFactor;
 
             // The following manipulation is to avoid some RenderScript artifacts at the edge.
             scaledWidth = scaledWidth - scaledWidth % 4 + 4;
@@ -842,7 +884,7 @@ public class DragSlopLayout extends FrameLayout {
                 throw new RuntimeException("Create bitmap failure!");
             }
             mBlurringCanvas = new Canvas(mBitmapToBlur);
-            mBlurringCanvas.scale(1.0f / SAMPLE_FACTOR, 1.0f / SAMPLE_FACTOR);
+            mBlurringCanvas.scale(1.0f / mSampleFactor, 1.0f / mSampleFactor);
             mBlurInput = Allocation.createFromBitmap(mRenderScript, mBitmapToBlur,
                     Allocation.MipmapControl.MIPMAP_NONE, Allocation.USAGE_SCRIPT);
             mBlurOutput = Allocation.createTyped(mRenderScript, mBlurInput.getType());
@@ -868,7 +910,13 @@ public class DragSlopLayout extends FrameLayout {
         mBlurDrawable = new ClipDrawable(drawable, Gravity.BOTTOM, ClipDrawable.VERTICAL);
         if (mDragStatus == STATUS_EXPANDED) {
             final int visibleHeight = mHeight - mDragView.getTop();
-            final int blurLevel = (int) ((visibleHeight * 1.0f / mMainView.getHeight()) * 10000);
+            int maxHeight;
+            if (mIsBlurFull) {
+                maxHeight = mHeight - mExpandedTop;
+            } else {
+                maxHeight = mMainView.getHeight();
+            }
+            final int blurLevel = (int) ((visibleHeight * 1.0f / maxHeight) * 10000);
             mBlurDrawable.setLevel(blurLevel);
             mBlurDrawable.setAlpha(255);
         } else {
@@ -880,6 +928,7 @@ public class DragSlopLayout extends FrameLayout {
     /**
      * 在线程处理图片模糊
      */
+    @SuppressWarnings("deprecation")
     private void _handleBlurInThread() {
         new Thread(new Runnable() {
             @Override

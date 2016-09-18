@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <group android:id="@+id/group_blur"
+        android:checkableBehavior="single">
+
+        <item
+            android:id="@+id/blur_local"
+            android:checked="true"
+            android:title="局部模糊"/>
+
+        <item
+            android:id="@+id/blur_full"
+            android:title="全图模糊"/>
+    </group>
+</menu>

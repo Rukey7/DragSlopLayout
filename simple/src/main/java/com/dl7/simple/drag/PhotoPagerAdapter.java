@@ -20,11 +20,12 @@ public class PhotoPagerAdapter extends PagerAdapter {
     private List<Integer> mImgList;
     private Context mContext;
     private OnPhotoClickListener mListener;
+    private boolean mIsFitXY;
 
-
-    public PhotoPagerAdapter(Context context, List<Integer> imgList) {
+    public PhotoPagerAdapter(Context context, List<Integer> imgList, boolean isFitXY) {
         this.mContext = context;
         this.mImgList = imgList;
+        this.mIsFitXY = isFitXY;
     }
 
 
@@ -41,7 +42,11 @@ public class PhotoPagerAdapter extends PagerAdapter {
     @Override
     public Object instantiateItem(ViewGroup container, int position) {
         PhotoView photo = new PhotoView(mContext);
-        photo.setScaleType(ImageView.ScaleType.FIT_XY);
+        if (mIsFitXY) {
+            photo.setScaleType(ImageView.ScaleType.FIT_XY);
+        } else {
+            photo.setScaleType(ImageView.ScaleType.FIT_CENTER);
+        }
         photo.setImageResource(mImgList.get(position));
         container.addView(photo);
         photo.setOnPhotoTapListener(new PhotoViewAttacher.OnPhotoTapListener() {

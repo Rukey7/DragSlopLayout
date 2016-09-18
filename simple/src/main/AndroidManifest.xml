@@ -19,7 +19,7 @@
         </activity>
         <activity android:name=".activity.DragActivity">
         </activity>
-        <activity android:name=".activity.DragClickActivity">
+        <activity android:name=".activity.DragBlurActivity">
         </activity>
     </application>
 

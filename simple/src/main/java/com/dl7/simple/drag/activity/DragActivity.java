@@ -2,8 +2,8 @@ package com.dl7.simple.drag.activity;
 
 import android.os.Bundle;
 import android.support.v4.view.ViewPager;
-import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.ScrollView;
 import android.widget.TextView;
@@ -18,7 +18,7 @@ import java.util.List;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 
-public class DragActivity extends AppCompatActivity {
+public class DragActivity extends BaseActivity {
 
     @BindView(R.id.vp_photo)
     ViewPager mVpPhoto;
@@ -37,13 +37,14 @@ public class DragActivity extends AppCompatActivity {
     @BindView(R.id.tool_bar)
     Toolbar mToolBar;
 
+    private boolean mIsInteract = true;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_drag);
         ButterKnife.bind(this);
-        setSupportActionBar(mToolBar);
-        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        initToolBar(mToolBar, true, "");
 
         final String[] titleList = new String[]{
                 "汤姆·哈迪", "克里斯蒂安·贝尔", "马克·沃尔伯格", "威尔·史密斯", "丹泽尔·华盛顿",
@@ -56,15 +57,18 @@ public class DragActivity extends AppCompatActivity {
                 getString(R.string.DenzelWashington),
         };
         List<Integer> imgList = new ArrayList<>();
-        imgList.add(R.mipmap.pic1);
-        imgList.add(R.mipmap.pic2);
-        imgList.add(R.mipmap.pic3);
-        imgList.add(R.mipmap.pic4);
-        imgList.add(R.mipmap.pic5);
-        PhotoPagerAdapter mPagerAdapter = new PhotoPagerAdapter(this, imgList);
+        imgList.add(R.mipmap.img1);
+        imgList.add(R.mipmap.img2);
+        imgList.add(R.mipmap.img3);
+        imgList.add(R.mipmap.img4);
+        imgList.add(R.mipmap.img5);
+
+        PhotoPagerAdapter mPagerAdapter = new PhotoPagerAdapter(this, imgList, false);
         mVpPhoto.setAdapter(mPagerAdapter);
+        // 实现 ScrollView 的平滑滚动
         mDragLayout.setAttachScrollView(mSvView);
-        mDragLayout.interactWithViewPager(true);
+        // 和 ViewPager 联动
+        mDragLayout.interactWithViewPager(mIsInteract);
 
         mTvCount.setText("" + imgList.size());
         mTvTitle.setText(titleList[0]);
@@ -83,10 +87,18 @@ public class DragActivity extends AppCompatActivity {
     }
 
     @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.menu_drag, menu);
+        return true;
+    }
+
+    @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        if (item.getItemId() == android.R.id.home) {
-            finish();
-            return true;
+        switch (item.getItemId()) {
+            case R.id.item_interact:
+                mIsInteract = !mIsInteract;
+                mDragLayout.interactWithViewPager(mIsInteract);
+                return true;
         }
         return super.onOptionsItemSelected(item);
     }

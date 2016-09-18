@@ -32,17 +32,10 @@
         android:textAllCaps="false"/>
 
     <Button
-        android:id="@+id/btn_fix"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Fix and ViewPager"
-        android:textAllCaps="false"/>
-
-    <Button
         android:id="@+id/btn_other"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Drag and Click"
+        android:text="Drag and Blur"
         android:textAllCaps="false"/>
 
 </LinearLayout>
