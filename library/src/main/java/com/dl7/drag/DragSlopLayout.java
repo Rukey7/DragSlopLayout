@@ -45,8 +45,7 @@ import java.lang.annotation.RetentionPolicy;
 public class DragSlopLayout extends FrameLayout {
 
     public static final int MODE_DRAG = 1;
-    public static final int MODE_FIX_ALWAYS = 2;
-    public static final int MODE_ANIMATE = 3;
+    public static final int MODE_ANIMATE = 2;
 
     // 展开
     static final int STATUS_EXPANDED = 1001;
@@ -201,8 +200,7 @@ public class DragSlopLayout extends FrameLayout {
             // 非拖拽模式固定高度为子视图高度
             mFixHeight = childHeight;
         } else if (mFixHeight > childHeight) {
-            // 固定高度超过子视图高度则设置为固定模式
-            mMode = MODE_FIX_ALWAYS;
+            // 固定高度超过子视图高度则设置为子视图高度
             mFixHeight = childHeight;
         }
         int childTop;
@@ -494,15 +492,12 @@ public class DragSlopLayout extends FrameLayout {
             if (visibleHeight < mFixHeight) {
                 return;
             }
-            int maxHeight;
             if (mIsBlurFull) {
-                maxHeight = mHeight - mExpandedTop;
+                mBlurDrawable.setLevel(10000);
             } else {
-                maxHeight = mMainView.getHeight();
+                final int blurLevel = (int) ((visibleHeight * 1.0f / mMainView.getHeight()) * 10000);
+                mBlurDrawable.setLevel(blurLevel);
             }
-            final int blurLevel = (int) ((visibleHeight * 1.0f / maxHeight) * 10000);
-//            final int blurLevel = (int) ((visibleHeight * 1.0f / mMainView.getHeight()) * 10000);
-            mBlurDrawable.setLevel(blurLevel);
             mBlurDrawable.setAlpha((int) (percent * 255));
         }
     }
@@ -607,7 +602,7 @@ public class DragSlopLayout extends FrameLayout {
 
             @Override
             public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
-                if (status != ViewPager.SCROLL_STATE_IDLE && mMode != MODE_FIX_ALWAYS && !mIsCustomAnimator) {
+                if (status != ViewPager.SCROLL_STATE_IDLE && !mIsCustomAnimator) {
                     // 判断拖拽过界的方向
                     if (Math.abs(positionOffset - mLastOffset) > 0.8f &&
                             status == ViewPager.SCROLL_STATE_DRAGGING) {
@@ -909,15 +904,13 @@ public class DragSlopLayout extends FrameLayout {
         Drawable drawable = new BitmapDrawable(getResources(), blurredBitmap);
         mBlurDrawable = new ClipDrawable(drawable, Gravity.BOTTOM, ClipDrawable.VERTICAL);
         if (mDragStatus == STATUS_EXPANDED) {
-            final int visibleHeight = mHeight - mDragView.getTop();
-            int maxHeight;
             if (mIsBlurFull) {
-                maxHeight = mHeight - mExpandedTop;
+                mBlurDrawable.setLevel(10000);
             } else {
-                maxHeight = mMainView.getHeight();
+                final int visibleHeight = mHeight - mDragView.getTop();
+                final int blurLevel = (int) ((visibleHeight * 1.0f / mMainView.getHeight()) * 10000);
+                mBlurDrawable.setLevel(blurLevel);
             }
-            final int blurLevel = (int) ((visibleHeight * 1.0f / maxHeight) * 10000);
-            mBlurDrawable.setLevel(blurLevel);
             mBlurDrawable.setAlpha(255);
         } else {
             mBlurDrawable.setLevel(0);
