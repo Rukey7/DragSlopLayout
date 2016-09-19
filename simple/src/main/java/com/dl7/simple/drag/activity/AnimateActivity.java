@@ -3,7 +3,9 @@ package com.dl7.simple.drag.activity;
 import android.animation.Animator;
 import android.animation.AnimatorSet;
 import android.animation.ObjectAnimator;
+import android.graphics.Color;
 import android.os.Bundle;
+import android.support.v4.content.ContextCompat;
 import android.support.v4.view.ViewPager;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
@@ -105,6 +107,8 @@ public class AnimateActivity extends BaseActivity {
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         item.setChecked(true);
+        // 默认的动画是控制整个 DragView
+        mLlView.setBackgroundColor(ContextCompat.getColor(this, android.R.color.holo_green_light));
         switch (item.getItemId()) {
             case R.id.slide_bottom:
                 mDsLayout.setAnimatorMode(DragSlopLayout.SLIDE_BOTTOM);
@@ -134,9 +138,11 @@ public class AnimateActivity extends BaseActivity {
                 mDsLayout.setAnimatorMode(DragSlopLayout.ZOOM_RIGHT);
                 return true;
             case R.id.slide_custom_one:
+                mLlView.setBackgroundColor(Color.TRANSPARENT);
                 _handleCustomOne();
                 return true;
             case R.id.slide_custom_two:
+                mLlView.setBackgroundColor(Color.TRANSPARENT);
                 _handleCustomTwo();
                 return true;
 

@@ -399,6 +399,26 @@ public class DragSlopLayout extends FrameLayout {
         }
     }
 
+    /**
+     * 滚出屏幕
+     * @param duration  时间
+     */
+    public void scrollOutScreen(int duration) {
+        mIsDoOutAnim = true;
+        mComeBackScroller.startScroll(0, mDragView.getTop(), 0, mHeight - mDragView.getTop(), duration);
+        ViewCompat.postInvalidateOnAnimation(DragSlopLayout.this);
+    }
+
+    /**
+     * 滚进屏幕
+     * @param duration  时间
+     */
+    public void scrollInScreen(int duration) {
+        mIsDoOutAnim = false;
+        mComeBackScroller.startScroll(0, mDragView.getTop(), 0, mCollapsedTop - mDragView.getTop(), duration);
+        ViewCompat.postInvalidateOnAnimation(DragSlopLayout.this);
+    }
+
     /***********************************
      * Inside
      ********************************************/

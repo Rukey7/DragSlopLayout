@@ -18,7 +18,7 @@
     <LinearLayout
         android:id="@+id/ll_view"
         android:orientation="horizontal"
-        android:background="@android:color/transparent"
+        android:background="@android:color/holo_green_light"
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
 

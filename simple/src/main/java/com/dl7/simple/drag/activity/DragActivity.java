@@ -37,6 +37,7 @@ public class DragActivity extends BaseActivity {
     @BindView(R.id.tool_bar)
     Toolbar mToolBar;
 
+    boolean isOpen = true;
     private boolean mIsInteract = true;
 
     @Override
@@ -83,7 +84,17 @@ public class DragActivity extends BaseActivity {
                 mTvContent.setText(descList[position]);
             }
         });
-
+        mPagerAdapter.setListener(new PhotoPagerAdapter.OnPhotoClickListener() {
+            @Override
+            public void onPhotoClick() {
+                if (isOpen) {
+                    mDragLayout.scrollOutScreen(500);
+                } else {
+                    mDragLayout.scrollInScreen(500);
+                }
+                isOpen = !isOpen;
+            }
+        });
     }
 
     @Override
