@@ -18,7 +18,7 @@ Gradle
 
 ### dependencies
 ```groovy
-    compile 'com.dl7.drag:dragsloplayout:1.0.0'
+compile 'com.dl7.drag:dragsloplayout:1.0.0'
 ```
 ### Enable RenderScript support mode
 ```groovy
@@ -34,8 +34,8 @@ Usage
 ---
 
 ### Setup
-    ```xml
-		<com.dl7.drag.DragSlopLayout
+```xml
+	<com.dl7.drag.DragSlopLayout
             android:id="@+id/drag_layout"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
@@ -58,41 +58,46 @@ Usage
             </LinearLayout>
             // ......
         </com.dl7.drag.DragSlopLayout>
-	```
+```
 	
 ### 和 ViewPager 联动
     如果你的 Content View 为 ViewPager，可以通过以下方法来实现联动效果：
-    ```groovy
+```groovy
     mDragLayout.interactWithViewPager(true);
-    ```
+```
     
 ### 实现拖拽和 ScrollView 的平滑滚动
     如果你的 Drag View 包含 ScrollView 或则 NestedScrollView，可以通过以下方法来实现平滑滚动：
-    ```groovy
+```groovy
     mDragLayout.setAttachScrollView(mSvView);
-    ```
+```
     
 ### Content View 的动态模糊
-    说是动态模糊可能不太准确，这功能是通过模糊预处理再来加载的，所以对于 Content View  为 ViewPager 的界面不适用，目前主要用来模糊固定的背景界面。可以通过以下方法启用模糊效果：
-    ```groovy
+    这功能是通过模糊预处理再来加载的，所以对于 Content View  为 ViewPager 的界面不适用，
+    目前主要用来模糊固定的背景界面。可以通过以下方法启用模糊效果：
+```groovy
     mDragLayout.setEnableBlur(true);
-    ```
+```
     可以控制局部模糊还是全背景模糊：
-    ```groovy
+```groovy
     mDragLayout.setBlurFull(boolean blurFull);
-    ```
-    
+```
+    更新模糊背景：
+```groovy
+    mDragLayout.updateBlurView();
+```
+
 ### 控制 Drag View 的进入和退出
     在 Drag 模式：
-    ```groovy
+```groovy
     mDragLayout.scrollInScreen(int duration);
     mDragLayout.scrollOutScreen(int duration);
-    ```
+```
     在 Animate 模式：
-    ```groovy
+```groovy
     mDragLayout.startInAnim();
     mDragLayout.startOutAnim();
-    ```
+```
     
 Thanks
 ---
