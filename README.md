@@ -33,7 +33,14 @@ android {
 Usage
 ---
 
-- 布局
+### 属性
+|name|format|description|
+|:---:|:---:|:---:|
+| mode | enum | drag 或则 animate, 默认为 drag
+| fix_height | dimension | drag模式收缩的高度, 默认为 0
+| max_height | dimension | drag模式展开的高度，默认为布局高度的 2/3
+
+### 布局
 ```xml
 <com.dl7.drag.DragSlopLayout
 	android:id="@+id/drag_layout"
@@ -59,43 +66,27 @@ Usage
 </com.dl7.drag.DragSlopLayout>
 ```
 	
-- 和 ViewPager 联动
-    **如果你的 Content View 为 ViewPager，可以通过以下方法来实现联动效果：**
+### 如果 Content View 为 ViewPager，通过以下方法来实现联动效果：
 ```java
     mDragLayout.interactWithViewPager(true);
 ```
-    
-- 实现拖拽和 ScrollView 的平滑滚动
-    **如果你的 Drag View 包含 ScrollView 或则 NestedScrollView，可以通过以下方法来实现平滑滚动：**
+### 如果 Drag View 包含 ScrollView 或则 NestedScrollView，通过以下方法来实现平滑滚动：
 ```java
     mDragLayout.setAttachScrollView(mSvView);
 ```
-    
-- Content View 的动态模糊
-    **这功能是通过模糊预处理再来加载的，所以对于 Content View  为 ViewPager 的界面不适用，**
-    **目前主要用来模糊固定的背景界面。可以通过以下方法启用模糊效果：**
+### Content View 的模糊效果，这功能是通过模糊预处理再来动态加载的，所以对于 Content View  为 ViewPager 的界面不适用，主要用来模糊固定的背景界面
 ```java
-    mDragLayout.setEnableBlur(true);
+    mDragLayout.setEnableBlur(true);	// 开启模糊
+    mDragLayout.setBlurFull(true);	// 设置全背景模糊，默认为局部模糊
+    mDragLayout.updateBlurView();	// 更新模糊背景
 ```
-    **可以控制局部模糊还是全背景模糊：**
+### 控制 Drag View 的进入和退出
 ```java
-    mDragLayout.setBlurFull(boolean blurFull);
-```
-    **更新模糊背景：**
-```java
-    mDragLayout.updateBlurView();
-```
+    mDragLayout.scrollInScreen(int duration);	// Drag 模式
+    mDragLayout.scrollOutScreen(int duration);	// Drag 模式
 
-- 控制 Drag View 的进入和退出
-    **在 Drag 模式：**
-```java
-    mDragLayout.scrollInScreen(int duration);
-    mDragLayout.scrollOutScreen(int duration);
-```
-    **在 Animate 模式：**
-```java
-    mDragLayout.startInAnim();
-    mDragLayout.startOutAnim();
+    mDragLayout.startInAnim();	// Animate 模式
+    mDragLayout.startOutAnim();	// Animate 模式
 ```
     
 Thanks
