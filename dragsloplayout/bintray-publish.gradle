@@ -5,7 +5,7 @@ apply plugin: 'com.github.dcendents.android-maven'
 Properties properties = new Properties()
 properties.load(project.rootProject.file('local.properties').newDataInputStream())
 
-version = "1.0.0"
+version = "1.0.1"
 
 def siteUrl = 'https://github.com/Rukey7/DragSlopLayout'
 def gitUrl = 'https://github.com/Rukey7/DragSlopLayout'
