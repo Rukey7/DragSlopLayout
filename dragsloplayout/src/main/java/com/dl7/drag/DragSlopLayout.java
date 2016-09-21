@@ -221,8 +221,8 @@ public class DragSlopLayout extends FrameLayout {
         }
         childView.layout(lp.leftMargin, childTop, lp.leftMargin + childWidth, childTop + childHeight);
 
-//            mCriticalTop = mHeight - (mDragView.getHeight() - mFixHeight) / 2 - mFixHeight;
-        mCriticalTop = b - childHeight / 2;
+        mCriticalTop = b - (childHeight - mFixHeight) / 2 - mFixHeight;
+//        mCriticalTop = b - childHeight / 2;
         mExpandedTop = b - childHeight;
         mCollapsedTop = b - mFixHeight;
     }
