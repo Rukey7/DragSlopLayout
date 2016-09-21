@@ -4,14 +4,14 @@
 Screenshot
 ---
 
-- Drag模式，可以和 ViewPager 联动
+#### Drag模式，可以和 ViewPager 联动
+![Drag](https://github.com/Rukey7/AndroidCommon/blob/master/ScreenShot/DragSlopLayout/drag.gif)
 
+#### Animate模式，同样可以和 ViewPager 联动(自定义动画无联动效果)
+![Animate](https://github.com/Rukey7/AndroidCommon/blob/master/ScreenShot/DragSlopLayout/animate.gif)
 
-- Animate模式，同样可以和 ViewPager 联动(自定义动画无联动效果)
-
-
-- Blur模糊效果，包括局部模糊和全图模糊
-
+#### Blur模糊效果，包括局部模糊和全图模糊
+![Local Blur](https://github.com/Rukey7/AndroidCommon/blob/master/ScreenShot/DragSlopLayout/local.jpg)  ![Full Blur](https://github.com/Rukey7/AndroidCommon/blob/master/ScreenShot/DragSlopLayout/full.jpg)
 
 Gradle
 ---
