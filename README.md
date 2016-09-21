@@ -18,7 +18,7 @@ Gradle
 
 ### dependencies
 ```groovy
-compile 'com.dl7.drag:dragsloplayout:1.0.0'
+compile 'com.dl7.drag:dragsloplayout:1.0.1'
 ```
 ### Enable RenderScript support mode
 ```groovy
@@ -87,6 +87,7 @@ Usage
 
     mDragLayout.startInAnim();	// Animate 模式
     mDragLayout.startOutAnim();	// Animate 模式
+    mDsLayout.setAnimatorMode(DragSlopLayout.FLIP_Y);	// 设置动画模式
 ```
     
 Thanks
