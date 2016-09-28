@@ -19,6 +19,8 @@
         android:id="@+id/ll_view"
         android:orientation="horizontal"
         android:background="@android:color/holo_green_light"
+        android:gravity="center"
+        android:padding="5dp"
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
 
@@ -26,33 +28,29 @@
             android:id="@+id/iv_favorite"
             android:layout_width="0dp"
             android:layout_weight="1"
-            android:layout_height="wrap_content"
-            android:layout_margin="10dp"
-            android:src="@mipmap/ic_favorite_border_white_24dp"/>
+            android:layout_height="22dp"
+            android:src="@drawable/sel_btn_love"/>
 
         <ImageView
             android:id="@+id/iv_download"
             android:layout_width="0dp"
             android:layout_weight="1"
             android:layout_height="wrap_content"
-            android:layout_margin="10dp"
-            android:src="@mipmap/ic_file_download_white_24dp"/>
+            android:src="@drawable/sel_btn_download"/>
 
         <ImageView
             android:id="@+id/iv_praise"
             android:layout_width="0dp"
             android:layout_weight="1"
-            android:layout_height="wrap_content"
-            android:layout_margin="10dp"
-            android:src="@mipmap/ic_thumb_up_white_24dp"/>
+            android:layout_height="22dp"
+            android:src="@drawable/sel_btn_praise"/>
 
         <ImageView
             android:id="@+id/iv_share"
             android:layout_width="0dp"
             android:layout_weight="1"
-            android:layout_height="wrap_content"
-            android:layout_margin="10dp"
-            android:src="@mipmap/ic_share_white_24dp"/>
+            android:layout_height="22dp"
+            android:src="@mipmap/btn_share"/>
     </LinearLayout>
 
     <include layout="@layout/layout_toolbar"/>

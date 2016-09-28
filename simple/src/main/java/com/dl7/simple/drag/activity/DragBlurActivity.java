@@ -36,7 +36,7 @@ public class DragBlurActivity extends BaseActivity {
     @BindView(R.id.tool_bar)
     Toolbar mToolBar;
 
-    private final int[] mImgRes = new int[] {R.mipmap.pic1, R.mipmap.pic2, R.mipmap.pic3};
+    private final int[] mImgRes = new int[] {R.mipmap.pic2, R.mipmap.pic4, R.mipmap.pic5};
     private int mIndex = 1;
 
 

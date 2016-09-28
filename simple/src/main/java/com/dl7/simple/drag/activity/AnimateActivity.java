@@ -17,6 +17,7 @@ import android.widget.Toast;
 
 import com.dl7.drag.DragSlopLayout;
 import com.dl7.drag.animate.CustomViewAnimator;
+import com.dl7.simple.drag.AnimateHelper;
 import com.dl7.simple.drag.PhotoPagerAdapter;
 import com.dl7.simple.drag.R;
 
@@ -82,15 +83,16 @@ public class AnimateActivity extends BaseActivity {
 
     @OnClick({R.id.iv_favorite, R.id.iv_download, R.id.iv_praise, R.id.iv_share})
     public void onClick(View view) {
+        boolean isSelected = !view.isSelected();
+        view.setSelected(isSelected);
         switch (view.getId()) {
             case R.id.iv_favorite:
-                Toast.makeText(this, "喜欢", Toast.LENGTH_SHORT).show();
+                AnimateHelper.doHeartBeat(view, 500);
                 break;
             case R.id.iv_download:
-                Toast.makeText(this, "下载", Toast.LENGTH_SHORT).show();
                 break;
             case R.id.iv_praise:
-                Toast.makeText(this, "点赞", Toast.LENGTH_SHORT).show();
+                AnimateHelper.doHeartBeat(view, 500);
                 break;
             case R.id.iv_share:
                 Toast.makeText(this, "分享", Toast.LENGTH_SHORT).show();
