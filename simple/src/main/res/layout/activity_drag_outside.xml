@@ -8,6 +8,7 @@
     android:layout_height="match_parent"
     android:background="@android:color/black"
     app:mode="drag_outside"
+    app:collapse_parallax="0.7"
     tools:context="com.dl7.simple.drag.activity.DragOutsideActivity">
 
     <android.support.v4.view.ViewPager

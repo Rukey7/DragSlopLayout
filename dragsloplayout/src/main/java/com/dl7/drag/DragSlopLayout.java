@@ -58,6 +58,8 @@ public class DragSlopLayout extends FrameLayout {
     private int mFixHeight;
     // 最大高度
     private int mMaxHeight;
+    // 折叠系数,1.0最大表示完全折叠，mMainView 视图不动；效果同 CollapsingToolbarLayout
+    private float mCollapseParallax = 1.0f;
     // 整个布局高度
     private int mHeight;
     // 拖拽模式的临界Top值
@@ -125,6 +127,7 @@ public class DragSlopLayout extends FrameLayout {
         TypedArray a = context.obtainStyledAttributes(attrs, R.styleable.DragSlopLayout, 0, 0);
         mFixHeight = a.getDimensionPixelOffset(R.styleable.DragSlopLayout_fix_height, mFixHeight);
         mMaxHeight = a.getDimensionPixelOffset(R.styleable.DragSlopLayout_max_height, 0);
+        mCollapseParallax = a.getFloat(R.styleable.DragSlopLayout_collapse_parallax, 1.0f);
         mMode = a.getInt(R.styleable.DragSlopLayout_mode, MODE_DRAG);
         a.recycle();
         if (mMode == MODE_DRAG) {
@@ -217,7 +220,6 @@ public class DragSlopLayout extends FrameLayout {
         childView.layout(lp.leftMargin, childTop, lp.leftMargin + childWidth, childTop + childHeight);
 
         mCriticalTop = b - (childHeight - mFixHeight) / 2 - mFixHeight;
-//        mCriticalTop = b - childHeight / 2;
         mExpandedTop = b - childHeight;
         mCollapsedTop = b - mFixHeight;
     }
@@ -502,6 +504,8 @@ public class DragSlopLayout extends FrameLayout {
                 final int dy = y - mDragView.getTop();
                 if (dy != 0) {
                     ViewCompat.offsetTopAndBottom(mDragView, dy);
+                    final float dragPercent = (mCollapsedTop - mDragView.getTop()) * 1.0f / (mCollapsedTop - mExpandedTop);
+                    _dragPositionChanged(mHeight - mDragView.getTop(), dragPercent);
                 }
             }
         }
@@ -555,6 +559,9 @@ public class DragSlopLayout extends FrameLayout {
             mBlurDrawable.setAlpha((int) (percent * 255));
         }
         */
+        if (visibleHeight >= 0) {
+            ViewCompat.setTranslationY(mMainView, -visibleHeight * (1 - mCollapseParallax));
+        }
     }
 
     /*********************************** ScrollView ********************************************/

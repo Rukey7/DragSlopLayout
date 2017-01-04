@@ -4,6 +4,7 @@
     <declare-styleable name="DragSlopLayout">
         <attr name="fix_height" format="dimension"/>
         <attr name="max_height" format="dimension"/>
+        <attr name="collapse_parallax" format="float"/>
         <attr name="mode" format="enum">
             <enum name="drag" value="1"/>
             <enum name="animate" value="2"/>
