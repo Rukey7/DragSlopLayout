@@ -11,7 +11,7 @@ Screenshot
 ![Animate](https://github.com/Rukey7/AndroidCommon/blob/master/ScreenShot/DragSlopLayout/animate.gif)
 
 #### Blur模糊效果，包括局部模糊和全图模糊
-![Local Blur](https://github.com/Rukey7/AndroidCommon/blob/master/ScreenShot/DragSlopLayout/local.jpg)  ![Full Blur](https://github.com/Rukey7/AndroidCommon/blob/master/ScreenShot/DragSlopLayout/full.jpg)
+![Blur](https://raw.githubusercontent.com/Rukey7/AndroidCommon/master/ScreenShot/DragSlopLayout/blur.gif)
 
 Gradle
 ---
