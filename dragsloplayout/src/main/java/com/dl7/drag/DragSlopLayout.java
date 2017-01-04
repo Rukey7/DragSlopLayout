@@ -2,26 +2,14 @@ package com.dl7.drag;
 
 import android.content.Context;
 import android.content.res.TypedArray;
-import android.graphics.Bitmap;
-import android.graphics.Canvas;
-import android.graphics.Color;
-import android.graphics.drawable.BitmapDrawable;
-import android.graphics.drawable.ClipDrawable;
-import android.graphics.drawable.ColorDrawable;
-import android.graphics.drawable.Drawable;
-import android.os.Build;
 import android.support.annotation.IntDef;
 import android.support.v4.view.ViewCompat;
 import android.support.v4.view.ViewPager;
 import android.support.v4.widget.NestedScrollView;
 import android.support.v4.widget.ScrollerCompat;
 import android.support.v4.widget.ViewDragHelper;
-import android.support.v8.renderscript.Allocation;
-import android.support.v8.renderscript.Element;
-import android.support.v8.renderscript.RenderScript;
-import android.support.v8.renderscript.ScriptIntrinsicBlur;
 import android.util.AttributeSet;
-import android.view.Gravity;
+import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
@@ -46,6 +34,7 @@ public class DragSlopLayout extends FrameLayout {
 
     public static final int MODE_DRAG = 1;
     public static final int MODE_ANIMATE = 2;
+    public static final int MODE_DRAG_OUTSIDE = 3;
 
     // 展开
     static final int STATUS_EXPANDED = 1001;
@@ -59,7 +48,7 @@ public class DragSlopLayout extends FrameLayout {
     // ViewDragHelper 的敏感度
     private static final float TOUCH_SLOP_SENSITIVITY = 1.0f;
     // 判断快速滑动的速率
-    private static final float FLING_VELOCITY = 2000;
+    private static final float FLING_VELOCITY = 2500;
     // 下坠动画时间
     private static final int FALL_BOUND_DURATION = 1000;
 
@@ -109,6 +98,8 @@ public class DragSlopLayout extends FrameLayout {
     private boolean mIsCustomAnimator = false;
     // 关联的 ScrollView，实现垂直方向的平滑滚动
     private View mAttachScrollView;
+    // 手势控制
+    private GestureDetector mGestureDetector;
 
 
     public DragSlopLayout(Context context) {
@@ -126,6 +117,8 @@ public class DragSlopLayout extends FrameLayout {
 
     private void _init(Context context, AttributeSet attrs) {
         mDragHelper = ViewDragHelper.create(this, TOUCH_SLOP_SENSITIVITY, callback);
+        mDragHelper.setEdgeTrackingEnabled(ViewDragHelper.EDGE_BOTTOM);
+        mGestureDetector = new GestureDetector(context, mGestureListener);
         mFallBoundScroller = ScrollerCompat.create(context, new BounceInterpolator());
         mComeBackScroller = ScrollerCompat.create(context, new DecelerateInterpolator());
 
@@ -136,9 +129,11 @@ public class DragSlopLayout extends FrameLayout {
         a.recycle();
         if (mMode == MODE_DRAG) {
             mDragStatus = STATUS_COLLAPSED;
-        }
-        if (mMode == MODE_ANIMATE) {
+        } else if (mMode == MODE_ANIMATE) {
             mAnimPresenter = new AnimatorPresenter();
+        } else if (mMode == MODE_DRAG_OUTSIDE) {
+            mDragStatus = STATUS_COLLAPSED;
+            mFixHeight = 0;
         }
     }
 
@@ -147,7 +142,7 @@ public class DragSlopLayout extends FrameLayout {
         super.onFinishInflate();
         int childCount = getChildCount();
         if (childCount < 2) {
-            // DragLayout 只能且必须包含两个子视图，第一个为主视图，另一个为可拖拽的视图
+            // DragLayout 必须包含两个子视图，第一个为主视图，另一个为可拖拽的视图
             throw new IllegalArgumentException("DragLayout must contains two sub-views.");
         }
 
@@ -196,7 +191,7 @@ public class DragSlopLayout extends FrameLayout {
         lp = (MarginLayoutParams) childView.getLayoutParams();
         int childWidth = childView.getMeasuredWidth();
         int childHeight = childView.getMeasuredHeight();
-        if (mMode != MODE_DRAG) {
+        if (mMode == MODE_ANIMATE) {
             // 非拖拽模式固定高度为子视图高度
             mFixHeight = childHeight;
         } else if (mFixHeight > childHeight) {
@@ -206,7 +201,7 @@ public class DragSlopLayout extends FrameLayout {
         int childTop;
         if (mDragStatus == STATUS_EXIT) {
             // 对于 ViewPager 换页后会回调 onLayout()，需要进行处理
-            if (mMode == MODE_DRAG) {
+            if (mMode == MODE_DRAG || mMode == MODE_DRAG_OUTSIDE) {
                 childTop = b;
             } else {
                 childTop = b - mFixHeight;
@@ -234,10 +229,12 @@ public class DragSlopLayout extends FrameLayout {
         if (mAnimPresenter != null) {
             mAnimPresenter.stopAllAnimator();
         }
+        /*
         if (mBitmapToBlur != null) {
             mBitmapToBlur.recycle();
             mBitmapToBlur = null;
         }
+        */
     }
 
     /***********************************
@@ -249,9 +246,11 @@ public class DragSlopLayout extends FrameLayout {
         boolean isIntercept = mDragHelper.shouldInterceptTouchEvent(ev);
         if (_isNeedIntercept(ev)) {
             isIntercept = true;
-        } else if (mDragHelper.isViewUnder(mDragView, (int) ev.getX(), (int) ev.getY()) && mMode == MODE_DRAG) {
+        } else if (mDragHelper.isViewUnder(mDragView, (int) ev.getX(), (int) ev.getY()) && mMode != MODE_ANIMATE) {
             // 处于拖拽模式且点击到拖拽视图则停止滚动
             _stopAllScroller();
+        } else if (mMode == MODE_DRAG_OUTSIDE) {
+            mGestureDetector.onTouchEvent(ev);
         }
         return isIntercept;
     }
@@ -262,8 +261,35 @@ public class DragSlopLayout extends FrameLayout {
         return mIsDrag;
     }
 
+    /**
+     * 手势监听
+     */
+    private GestureDetector.OnGestureListener mGestureListener = new GestureDetector.SimpleOnGestureListener() {
+        // 是否是按下的标识，默认为其他动作，true为按下标识，false为其他动作
+        private boolean isDownTouch;
+
+        @Override
+        public boolean onDown(MotionEvent e) {
+            isDownTouch = true;
+            return super.onDown(e);
+        }
+
+        @Override
+        public boolean onScroll(MotionEvent e1, MotionEvent e2, float distanceX, float distanceY) {
+            if (isDownTouch) {
+                // 如果为上下滑动则控制拖拽
+                if (Math.abs(distanceY) > Math.abs(distanceX)) {
+                    mDragHelper.captureChildView(mDragView, 0);
+                }
+                isDownTouch = false;
+            }
+            return super.onScroll(e1, e2, distanceX, distanceY);
+        }
+    };
+
 
     private ViewDragHelper.Callback callback = new ViewDragHelper.Callback() {
+        private static final float SCROLL_DURATION = 0.1f;
 
         @Override
         public boolean tryCaptureView(View child, int pointerId) {
@@ -276,18 +302,23 @@ public class DragSlopLayout extends FrameLayout {
         public void onViewReleased(View releasedChild, float xvel, float yvel) {
             super.onViewReleased(releasedChild, xvel, yvel);
             if (Math.abs(yvel) < FLING_VELOCITY) {
-                if (mDragView.getTop() > mCriticalTop) {
+                // 在 MODE_DRAG_OUTSIDE 模式下才做自动滚动处理，其它模式做收缩滚动,快速滚动在任何模式都做
+                if (mMode == MODE_DRAG_OUTSIDE) {
+                    int finalTop = (int) (yvel * SCROLL_DURATION + mDragView.getTop());
+                    finalTop = Math.max(mExpandedTop, finalTop);
+                    finalTop = Math.min(mCollapsedTop, finalTop);
+                    mDragHelper.settleCapturedViewAt(0, finalTop);
+                } else if (mDragView.getTop() > mCriticalTop) {
                     if (mDragStatus == STATUS_EXPANDED) {
                         mDragHelper.smoothSlideViewTo(mDragView, 0, mCollapsedTop);
                     } else {
                         mFallBoundScroller.startScroll(0, mDragView.getTop(), 0, mCollapsedTop - mDragView.getTop(),
                                 FALL_BOUND_DURATION);
                     }
-                    ViewCompat.postInvalidateOnAnimation(DragSlopLayout.this);
                 } else {
                     mDragHelper.smoothSlideViewTo(mDragView, 0, mExpandedTop);
-                    ViewCompat.postInvalidateOnAnimation(DragSlopLayout.this);
                 }
+                ViewCompat.postInvalidateOnAnimation(DragSlopLayout.this);
             } else if (yvel > 0) {
                 if (!_flingScrollView(yvel)) {
                     mDragHelper.settleCapturedViewAt(0, mCollapsedTop);
@@ -343,6 +374,11 @@ public class DragSlopLayout extends FrameLayout {
         @Override
         public int getViewVerticalDragRange(View child) {
             return child == mDragView ? child.getHeight() : 0;
+        }
+
+        @Override
+        public void onEdgeDragStarted(int edgeFlags, int pointerId) {
+            mDragHelper.captureChildView(mDragView, pointerId);
         }
     };
 
@@ -448,7 +484,7 @@ public class DragSlopLayout extends FrameLayout {
      *
      * @param percent ViewPager 滑动百分比
      */
-    private void _hideDragView(float percent) {
+    private void _hideDragView(float percent, int curTop) {
         if (!mHasShowRunnable && !mIsDoOutAnim) {
             float hidePercent = percent * 3;
             if (hidePercent > 1.0f) {
@@ -458,15 +494,15 @@ public class DragSlopLayout extends FrameLayout {
                 mDragStatus = STATUS_SCROLL;
             }
 
-            if (mMode == MODE_DRAG) {
+            if (mMode == MODE_ANIMATE) {
+                mAnimPresenter.handleAnimateFrame(mDragView, hidePercent);
+            } else {
                 _stopAllScroller();
-                final int y = (int) (mFixHeight * hidePercent + mCollapsedTop);
+                final int y = (int) ((mCollapsedTop + mFixHeight - curTop) * hidePercent + curTop);
                 final int dy = y - mDragView.getTop();
                 if (dy != 0) {
                     ViewCompat.offsetTopAndBottom(mDragView, dy);
                 }
-            } else if (mMode == MODE_ANIMATE) {
-                mAnimPresenter.handleAnimateFrame(mDragView, hidePercent);
             }
         }
     }
@@ -488,12 +524,12 @@ public class DragSlopLayout extends FrameLayout {
         @Override
         public void run() {
             mHasShowRunnable = false;
-            if (mMode == MODE_DRAG) {
-                mComeBackScroller.startScroll(0, mDragView.getTop(), 0, mCollapsedTop - mDragView.getTop(), 500);
-                ViewCompat.postInvalidateOnAnimation(DragSlopLayout.this);
-            } else if (mMode == MODE_ANIMATE) {
+            if (mMode == MODE_ANIMATE) {
                 startInAnim();
                 mDragStatus = STATUS_SCROLL;
+            } else {
+                mComeBackScroller.startScroll(0, mDragView.getTop(), 0, mCollapsedTop - mDragView.getTop(), 500);
+                ViewCompat.postInvalidateOnAnimation(DragSlopLayout.this);
             }
         }
     };
@@ -505,6 +541,7 @@ public class DragSlopLayout extends FrameLayout {
      * @param percent       百分比
      */
     private void _dragPositionChanged(int visibleHeight, float percent) {
+        /*
         if (mEnableBlur && mBlurDrawable != null) {
             if (visibleHeight < mFixHeight) {
                 return;
@@ -517,6 +554,7 @@ public class DragSlopLayout extends FrameLayout {
             }
             mBlurDrawable.setAlpha((int) (percent * 255));
         }
+        */
     }
 
     /*********************************** ScrollView ********************************************/
@@ -544,12 +582,14 @@ public class DragSlopLayout extends FrameLayout {
             return false;
         }
         int y = (int) ev.getY() - mDragView.getTop();
-        if (mDragHelper.isViewUnder(mAttachScrollView, (int) ev.getX(), y) && mMode == MODE_DRAG) {
+        if (mDragHelper.isViewUnder(mAttachScrollView, (int) ev.getX(), y) && mMode != MODE_ANIMATE) {
             return true;
         }
+        /*
         if (mEnableBlur && mDragStatus == STATUS_EXPANDED) {
             return true;
         }
+        */
         return false;
     }
 
@@ -616,6 +656,7 @@ public class DragSlopLayout extends FrameLayout {
             boolean isRightSlide = true;
             float mLastOffset = 0;
             int status = ViewPager.SCROLL_STATE_IDLE;
+            int curDragViewTop;
 
             @Override
             public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
@@ -641,7 +682,7 @@ public class DragSlopLayout extends FrameLayout {
                             percent = 0;
                         }
                     }
-                    _hideDragView(percent);
+                    _hideDragView(percent, curDragViewTop);
                     mLastOffset = positionOffset;
                 }
             }
@@ -652,12 +693,15 @@ public class DragSlopLayout extends FrameLayout {
                     isRightSlide = true;
                     mLastOffset = 0;
                     // 如果手动调用退出动画则不做自动启动动画
-                    if (mDragStatus == STATUS_EXIT && !mIsDoOutAnim) {
+                    if (mDragStatus == STATUS_EXIT && !mIsDoOutAnim && mMode != MODE_DRAG_OUTSIDE) {
                         _showDragView(mAutoAnimateDelay);
                     }
                 } else {
                     if (mDragStatus == STATUS_EXIT) {
                         getHandler().removeCallbacks(mShowRunnable);
+                    }
+                    if (state == ViewPager.SCROLL_STATE_DRAGGING) {
+                        curDragViewTop = mDragView.getTop();
                     }
                 }
                 status = state;
@@ -782,7 +826,7 @@ public class DragSlopLayout extends FrameLayout {
     /*************************************
      * Blur
      ********************************************/
-
+/*
     private final static int DEFAULT_SAMPLE_FACTOR = 4;
     private final static int DEFAULT_BLUR_RADIUS = 5;
 
@@ -827,11 +871,11 @@ public class DragSlopLayout extends FrameLayout {
         mIsBlurFull = blurFull;
     }
 
-    /**
+    *//**
      * 设置使能模糊效果
      *
      * @param enableBlur
-     */
+     *//*
     public void setEnableBlur(boolean enableBlur) {
         if (mEnableBlur == enableBlur) {
             return;
@@ -862,9 +906,9 @@ public class DragSlopLayout extends FrameLayout {
         }
     }
 
-    /**
+    *//**
      * 刷新模糊视图
-     */
+     *//*
     public void updateBlurView() {
         if (mEnableBlur) {
             mBlurDrawable = null;
@@ -872,11 +916,11 @@ public class DragSlopLayout extends FrameLayout {
         }
     }
 
-    /**
+    *//**
      * 模糊视图
      *
      * @param view
-     */
+     *//*
     private void _blurView(View view) {
         final int width = view.getWidth();
         final int height = view.getHeight();
@@ -939,9 +983,9 @@ public class DragSlopLayout extends FrameLayout {
         }
     }
 
-    /**
+    *//**
      * 在线程处理图片模糊
-     */
+     *//*
     @SuppressWarnings("deprecation")
     private void _handleBlurInThread() {
         new Thread(new Runnable() {
@@ -962,4 +1006,5 @@ public class DragSlopLayout extends FrameLayout {
             }
         }).start();
     }
+    */
 }

@@ -10,6 +10,7 @@ import android.widget.Button;
 import com.dl7.simple.drag.activity.AnimateActivity;
 import com.dl7.simple.drag.activity.DragActivity;
 import com.dl7.simple.drag.activity.DragBlurActivity;
+import com.dl7.simple.drag.activity.DragOutsideActivity;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -25,6 +26,8 @@ public class MainActivity extends AppCompatActivity {
     Button mBtnOther;
     @BindView(R.id.tool_bar)
     Toolbar mToolBar;
+    @BindView(R.id.btn_drag_outside)
+    Button mBtnDragOutside;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -36,7 +39,7 @@ public class MainActivity extends AppCompatActivity {
         mToolBar.setTitle("DragSlopLayout");
     }
 
-    @OnClick({R.id.btn_drag, R.id.btn_animate, R.id.btn_other})
+    @OnClick({R.id.btn_drag, R.id.btn_animate, R.id.btn_other, R.id.btn_drag_outside})
     public void onClick(View view) {
         switch (view.getId()) {
             case R.id.btn_drag:
@@ -47,6 +50,9 @@ public class MainActivity extends AppCompatActivity {
                 break;
             case R.id.btn_other:
                 startActivity(new Intent(this, DragBlurActivity.class));
+                break;
+            case R.id.btn_drag_outside:
+                startActivity(new Intent(this, DragOutsideActivity.class));
                 break;
         }
     }

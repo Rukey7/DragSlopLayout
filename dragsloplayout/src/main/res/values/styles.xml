@@ -7,6 +7,7 @@
         <attr name="mode" format="enum">
             <enum name="drag" value="1"/>
             <enum name="animate" value="2"/>
+            <enum name="drag_outside" value="3"/>
         </attr>
     </declare-styleable>
 </resources>
