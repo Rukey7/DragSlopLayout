@@ -27,11 +27,11 @@ dependencies {
     testCompile 'junit:junit:4.12'
     compile 'com.android.support:appcompat-v7:23.4.0'
     compile project(':dragsloplayout')
+//    compile 'com.github.Rukey7:DragSlopLayout:1.0.2'
     // photoview
     compile 'com.github.chrisbanes.photoview:library:1.2.4'
     // butterknife
     compile 'com.jakewharton:butterknife:8.4.0'
     apt 'com.jakewharton:butterknife-compiler:8.4.0'
 
-    compile 'com.eightbitlab:blurview:1.2.0'
 }
