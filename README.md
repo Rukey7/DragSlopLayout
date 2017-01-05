@@ -1,4 +1,6 @@
 # DragSlopLayout
+[![Apache 2.0 License](https://img.shields.io/badge/license-Apache%202.0-blue.svg?style=flat)](http://www.apache.org/licenses/LICENSE-2.0.html) [![](https://jitpack.io/v/Rukey7/DragSlopLayout.svg)](https://jitpack.io/#Rukey7/DragSlopLayout)
+
 一个辅助开发的UI库，适用于某些特殊场景，如固定范围拖拽、动画、模糊效果等。
 
 Screenshot
@@ -16,11 +18,24 @@ Screenshot
 Gradle
 ---
 
-### dependencies
-```groovy
-compile 'com.dl7.drag:dragsloplayout:1.0.1'
+### 库依赖
+
+```gradle
+allprojects {
+		repositories {
+			...
+			maven { url 'https://jitpack.io' }
+		}
+	}
 ```
-### Enable RenderScript support mode
+
+因为模糊库比较大，如果你需要使用模糊效果则依赖的版本{lastest-version}后面加上'-blur'，不需要则不用加
+
+```gradle
+compile 'com.github.Rukey7:IjkPlayerView:{lastest-version}-blur'
+```
+
+### 使用模糊库需要设置对应的配置
 ```groovy
 android {
     defaultConfig {
@@ -36,9 +51,11 @@ Usage
 ### 属性
 |name|format|description|
 |:---:|:---:|:---:|
-| mode | enum | drag 或则 animate, 默认为 drag
+| mode | enum | drag、animate或者drag_outside, 默认为 drag
 | fix_height | dimension | drag模式收缩的高度, 默认为 0
 | max_height | dimension | drag模式展开的高度，默认为布局高度的 2/3
+| collapse_parallax | float | 折叠系数，效果同 CollapsingToolbarLayout，默认为 1
+
 
 ### 布局
 ```xml
