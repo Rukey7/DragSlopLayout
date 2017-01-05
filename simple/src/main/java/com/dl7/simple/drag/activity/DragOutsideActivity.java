@@ -2,40 +2,46 @@ package com.dl7.simple.drag.activity;
 
 import android.os.Bundle;
 import android.support.v4.view.ViewPager;
+import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.widget.ScrollView;
-import android.widget.TextView;
+import android.view.View;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
 
 import com.dl7.drag.DragSlopLayout;
-import com.dl7.simple.drag.PhotoPagerAdapter;
 import com.dl7.simple.drag.R;
+import com.dl7.simple.drag.adapter.PhotoPagerAdapter;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
+import butterknife.OnClick;
 
 public class DragOutsideActivity extends BaseActivity {
 
+
     @BindView(R.id.vp_photo)
     ViewPager mVpPhoto;
-    @BindView(R.id.tv_title)
-    TextView mTvTitle;
-    @BindView(R.id.tv_count)
-    TextView mTvCount;
-    @BindView(R.id.tv_index)
-    TextView mTvIndex;
-    @BindView(R.id.tv_content)
-    TextView mTvContent;
-    @BindView(R.id.sv_view)
-    ScrollView mSvView;
-    @BindView(R.id.drag_layout)
-    DragSlopLayout mDragLayout;
+    @BindView(R.id.rv_relate_list)
+    RecyclerView mRvRelateList;
     @BindView(R.id.tool_bar)
     Toolbar mToolBar;
+    @BindView(R.id.iv_favorite)
+    ImageView mIvFavorite;
+    @BindView(R.id.iv_download)
+    ImageView mIvDownload;
+    @BindView(R.id.iv_praise)
+    ImageView mIvPraise;
+    @BindView(R.id.iv_share)
+    ImageView mIvShare;
+    @BindView(R.id.bottom_bar)
+    LinearLayout mBottomBar;
+    @BindView(R.id.drag_layout)
+    DragSlopLayout mDragLayout;
 
     private boolean mIsInteract = true;
 
@@ -44,18 +50,8 @@ public class DragOutsideActivity extends BaseActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_drag_outside);
         ButterKnife.bind(this);
-        initToolBar(mToolBar, true, "");
+        initToolBar(mToolBar, true, "Drag Outside Mode");
 
-        final String[] titleList = new String[]{
-                "汤姆·哈迪", "克里斯蒂安·贝尔", "马克·沃尔伯格", "威尔·史密斯", "丹泽尔·华盛顿",
-        };
-        final String[] descList = new String[]{
-                getString(R.string.TomHardy),
-                getString(R.string.ChristianBale),
-                getString(R.string.MarkWahlberg),
-                getString(R.string.WillSmith),
-                getString(R.string.DenzelWashington),
-        };
         List<Integer> imgList = new ArrayList<>();
         imgList.add(R.mipmap.img1);
         imgList.add(R.mipmap.img2);
@@ -65,24 +61,8 @@ public class DragOutsideActivity extends BaseActivity {
 
         PhotoPagerAdapter mPagerAdapter = new PhotoPagerAdapter(this, imgList, false);
         mVpPhoto.setAdapter(mPagerAdapter);
-        // 实现 ScrollView 的平滑滚动
-        mDragLayout.setAttachScrollView(mSvView);
         // 和 ViewPager 联动
         mDragLayout.interactWithViewPager(mIsInteract);
-
-        mTvCount.setText("" + imgList.size());
-        mTvTitle.setText(titleList[0]);
-        mTvIndex.setText("" + 1);
-        mTvContent.setText(descList[0]);
-
-        mVpPhoto.addOnPageChangeListener(new ViewPager.SimpleOnPageChangeListener() {
-            @Override
-            public void onPageSelected(int position) {
-                mTvTitle.setText(titleList[position]);
-                mTvIndex.setText("" + (position + 1));
-                mTvContent.setText(descList[position]);
-            }
-        });
     }
 
     @Override
@@ -101,5 +81,19 @@ public class DragOutsideActivity extends BaseActivity {
                 return true;
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    @OnClick({R.id.iv_favorite, R.id.iv_download, R.id.iv_praise, R.id.iv_share})
+    public void onClick(View view) {
+        switch (view.getId()) {
+            case R.id.iv_favorite:
+                break;
+            case R.id.iv_download:
+                break;
+            case R.id.iv_praise:
+                break;
+            case R.id.iv_share:
+                break;
+        }
     }
 }

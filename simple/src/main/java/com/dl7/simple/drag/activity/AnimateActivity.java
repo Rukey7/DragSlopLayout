@@ -18,7 +18,7 @@ import android.widget.Toast;
 import com.dl7.drag.DragSlopLayout;
 import com.dl7.drag.animate.CustomViewAnimator;
 import com.dl7.simple.drag.AnimateHelper;
-import com.dl7.simple.drag.PhotoPagerAdapter;
+import com.dl7.simple.drag.adapter.PhotoPagerAdapter;
 import com.dl7.simple.drag.R;
 
 import java.util.ArrayList;

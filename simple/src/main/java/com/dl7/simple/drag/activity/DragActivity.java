@@ -9,7 +9,7 @@ import android.widget.ScrollView;
 import android.widget.TextView;
 
 import com.dl7.drag.DragSlopLayout;
-import com.dl7.simple.drag.PhotoPagerAdapter;
+import com.dl7.simple.drag.adapter.PhotoPagerAdapter;
 import com.dl7.simple.drag.R;
 
 import java.util.ArrayList;

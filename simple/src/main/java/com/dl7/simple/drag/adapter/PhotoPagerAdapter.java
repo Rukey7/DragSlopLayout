@@ -1,4 +1,4 @@
-package com.dl7.simple.drag;
+package com.dl7.simple.drag.adapter;
 
 import android.content.Context;
 import android.support.v4.view.PagerAdapter;

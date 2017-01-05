@@ -18,66 +18,75 @@
 
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:background="@color/photo_bg"
-        android:orientation="vertical">
+        android:orientation="vertical"
+        android:background="@android:color/white"
+        android:layout_height="wrap_content">
 
-        <LinearLayout
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_margin="10dp"
+            android:text="相关图片"
+            android:textColor="#333333"/>
+
+        <android.support.v7.widget.RecyclerView
+            android:id="@+id/rv_relate_list"
             android:layout_width="match_parent"
-            android:layout_height="60dp"
-            android:orientation="horizontal"
-            android:padding="10dp">
+            android:layout_height="128dp"/>
 
-            <TextView
-                android:id="@+id/tv_title"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center"
-                android:layout_weight="1"
-                android:maxLines="1"
-                android:textColor="@android:color/white"
-                android:textSize="22sp"/>
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_margin="10dp"
+            android:text="相关说明"
+            android:textColor="#333333"/>
 
-            <TextView
-                android:id="@+id/tv_index"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center"
-                android:textColor="@android:color/white"
-                android:textSize="18sp"/>
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center"
-                android:text="/"
-                android:textColor="@android:color/white"
-                android:textSize="18sp"/>
-
-            <TextView
-                android:id="@+id/tv_count"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center"
-                android:textColor="@android:color/white"
-                android:textSize="14sp"/>
-        </LinearLayout>
-
-        <ScrollView
-            android:id="@+id/sv_view"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content">
-
-            <TextView
-                android:id="@+id/tv_content"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:paddingLeft="10dp"
-                android:paddingRight="10dp"
-                android:textColor="@android:color/white"
-                android:textSize="14sp"/>
-        </ScrollView>
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="10dp"
+            android:text="汤姆·哈迪\n克里斯蒂安·贝尔\n马克·沃尔伯格\n威尔·史密斯\n丹泽尔·华盛顿"
+            android:textColor="#333333"/>
     </LinearLayout>
 
     <include layout="@layout/layout_toolbar"/>
+
+    <LinearLayout
+        android:id="@+id/bottom_bar"
+        android:orientation="horizontal"
+        android:layout_gravity="bottom"
+        android:background="#40333333"
+        android:gravity="center"
+        android:padding="5dp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <ImageView
+            android:id="@+id/iv_favorite"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="22dp"
+            android:src="@drawable/sel_btn_love"/>
+
+        <ImageView
+            android:id="@+id/iv_download"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:src="@drawable/sel_btn_download"/>
+
+        <ImageView
+            android:id="@+id/iv_praise"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="22dp"
+            android:src="@drawable/sel_btn_praise"/>
+
+        <ImageView
+            android:id="@+id/iv_share"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="22dp"
+            android:src="@mipmap/btn_share"/>
+    </LinearLayout>
 </com.dl7.drag.DragSlopLayout>

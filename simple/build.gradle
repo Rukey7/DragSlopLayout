@@ -26,8 +26,10 @@ dependencies {
     compile fileTree(include: ['*.jar'], dir: 'libs')
     testCompile 'junit:junit:4.12'
     compile 'com.android.support:appcompat-v7:23.4.0'
+    compile 'com.android.support:design:23.4.0'
     compile project(':dragsloplayout')
 //    compile 'com.github.Rukey7:DragSlopLayout:1.0.2'
+//    compile 'com.github.Rukey7:DragSlopLayout:1.0.2-blur'
     // photoview
     compile 'com.github.chrisbanes.photoview:library:1.2.4'
     // butterknife

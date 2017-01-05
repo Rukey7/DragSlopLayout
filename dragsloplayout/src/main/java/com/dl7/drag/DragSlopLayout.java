@@ -11,6 +11,7 @@ import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.support.annotation.IntDef;
+import android.support.v4.view.MotionEventCompat;
 import android.support.v4.view.ViewCompat;
 import android.support.v4.view.ViewPager;
 import android.support.v4.widget.NestedScrollView;
@@ -25,6 +26,7 @@ import android.view.GestureDetector;
 import android.view.Gravity;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.ViewConfiguration;
 import android.view.ViewGroup;
 import android.view.ViewParent;
 import android.view.animation.BounceInterpolator;
@@ -115,6 +117,8 @@ public class DragSlopLayout extends FrameLayout {
     private View mAttachScrollView;
     // 手势控制
     private GestureDetector mGestureDetector;
+    // DragView的Top属性值
+    private int mDragViewTop = 0;
 
 
     public DragSlopLayout(Context context) {
@@ -136,6 +140,7 @@ public class DragSlopLayout extends FrameLayout {
         mGestureDetector = new GestureDetector(context, mGestureListener);
         mFallBoundScroller = ScrollerCompat.create(context, new BounceInterpolator());
         mComeBackScroller = ScrollerCompat.create(context, new DecelerateInterpolator());
+        mMinTouchSlop = ViewConfiguration.get(context).getScaledTouchSlop();
 
         TypedArray a = context.obtainStyledAttributes(attrs, R.styleable.DragSlopLayout, 0, 0);
         mFixHeight = a.getDimensionPixelOffset(R.styleable.DragSlopLayout_fix_height, mFixHeight);
@@ -192,6 +197,7 @@ public class DragSlopLayout extends FrameLayout {
         int childHeight = childView.getMeasuredHeight();
         // 限定视图的最大高度
         if (childHeight > mMaxHeight) {
+            mMaxHeight = childHeight;
             MeasureSpec.makeMeasureSpec(childWidth - lp.leftMargin - lp.rightMargin, MeasureSpec.EXACTLY);
             childView.measure(MeasureSpec.makeMeasureSpec(childWidth - lp.leftMargin - lp.rightMargin, MeasureSpec.EXACTLY),
                     MeasureSpec.makeMeasureSpec(mMaxHeight - lp.topMargin - lp.bottomMargin, MeasureSpec.EXACTLY));
@@ -201,7 +207,6 @@ public class DragSlopLayout extends FrameLayout {
     @Override
     protected void onLayout(boolean changed, int l, int t, int r, int b) {
         super.onLayout(changed, l, t, r, b);
-
         MarginLayoutParams lp;
         View childView = getChildAt(2);
         lp = (MarginLayoutParams) childView.getLayoutParams();
@@ -214,27 +219,28 @@ public class DragSlopLayout extends FrameLayout {
             // 固定高度超过子视图高度则设置为子视图高度
             mFixHeight = childHeight;
         }
-        int childTop;
-        if (mDragStatus == STATUS_EXIT) {
-            // 对于 ViewPager 换页后会回调 onLayout()，需要进行处理
-            if (mMode == MODE_DRAG || mMode == MODE_DRAG_OUTSIDE) {
-                childTop = b;
-            } else {
-                childTop = b - mFixHeight;
-                childView.setTranslationY(childHeight);
-            }
-        } else if (mDragStatus == STATUS_COLLAPSED) {
-            childTop = b - mFixHeight;
-        } else if (mDragStatus == STATUS_EXPANDED) {
-            childTop = b - childHeight;
-        } else {
-            childTop = b - mFixHeight;
-        }
-        childView.layout(lp.leftMargin, childTop, lp.leftMargin + childWidth, childTop + childHeight);
-
         mCriticalTop = b - (childHeight - mFixHeight) / 2 - mFixHeight;
         mExpandedTop = b - childHeight;
         mCollapsedTop = b - mFixHeight;
+        // 如果本身 mDragViewTop 已经有值，则直接使用，不然会出现突然闪一下的情况
+        if (mDragViewTop == 0) {
+            if (mDragStatus == STATUS_EXIT) {
+                // 对于 ViewPager 换页后会回调 onLayout()，需要进行处理
+                if (mMode == MODE_DRAG || mMode == MODE_DRAG_OUTSIDE) {
+                    mDragViewTop = b;
+                } else {
+                    mDragViewTop = b - mFixHeight;
+                    childView.setTranslationY(childHeight);
+                }
+            } else if (mDragStatus == STATUS_COLLAPSED) {
+                mDragViewTop = b - mFixHeight;
+            } else if (mDragStatus == STATUS_EXPANDED) {
+                mDragViewTop = b - childHeight;
+            } else {
+                mDragViewTop = b - mFixHeight;
+            }
+        }
+        childView.layout(lp.leftMargin, mDragViewTop, lp.leftMargin + childWidth, mDragViewTop + childHeight);
     }
 
     @Override
@@ -255,6 +261,17 @@ public class DragSlopLayout extends FrameLayout {
      ********************************************/
 
     @Override
+    public boolean dispatchTouchEvent(MotionEvent ev) {
+        switch (MotionEventCompat.getActionMasked(ev)) {
+            case MotionEvent.ACTION_UP:
+            case MotionEvent.ACTION_CANCEL:
+                mIsDrag = false;
+                break;
+        }
+        return super.dispatchTouchEvent(ev);
+    }
+
+    @Override
     public boolean onInterceptTouchEvent(MotionEvent ev) {
         boolean isIntercept = mDragHelper.shouldInterceptTouchEvent(ev);
         if (_isNeedIntercept(ev)) {
@@ -262,7 +279,8 @@ public class DragSlopLayout extends FrameLayout {
         } else if (mDragHelper.isViewUnder(mDragView, (int) ev.getX(), (int) ev.getY()) && mMode != MODE_ANIMATE) {
             // 处于拖拽模式且点击到拖拽视图则停止滚动
             _stopAllScroller();
-        } else if (mMode == MODE_DRAG_OUTSIDE) {
+        }
+        if (mMode == MODE_DRAG_OUTSIDE && !mIsDrag) {
             mGestureDetector.onTouchEvent(ev);
         }
         return isIntercept;
@@ -292,7 +310,9 @@ public class DragSlopLayout extends FrameLayout {
             if (isDownTouch) {
                 // 如果为上下滑动则控制拖拽
                 if (Math.abs(distanceY) > Math.abs(distanceX)) {
+                    _stopAllScroller();
                     mDragHelper.captureChildView(mDragView, 0);
+                    mIsDrag = true;
                 }
                 isDownTouch = false;
             }
@@ -450,7 +470,8 @@ public class DragSlopLayout extends FrameLayout {
 
     /**
      * 滚出屏幕
-     * @param duration  时间
+     *
+     * @param duration 时间
      */
     public void scrollOutScreen(int duration) {
         mIsDoOutAnim = true;
@@ -460,7 +481,8 @@ public class DragSlopLayout extends FrameLayout {
 
     /**
      * 滚进屏幕
-     * @param duration  时间
+     *
+     * @param duration 时间
      */
     public void scrollInScreen(int duration) {
         mIsDoOutAnim = false;
@@ -556,6 +578,15 @@ public class DragSlopLayout extends FrameLayout {
      * @param percent       百分比
      */
     private void _dragPositionChanged(int visibleHeight, float percent) {
+        if (mDragViewTop == 0) {
+            mLastDragViewTop = mHeight - visibleHeight;
+        }
+        mDragViewTop = mHeight - visibleHeight;
+        // 拖拽距离超过最小滑动距离则进行判断
+        if (Math.abs(mDragViewTop - mLastDragViewTop) > mMinTouchSlop) {
+            mIsUp = (mDragViewTop < mLastDragViewTop);
+            mLastDragViewTop = mDragViewTop;
+        }
         if (mEnableBlur && mBlurDrawable != null) {
             if (visibleHeight < mFixHeight) {
                 return;
@@ -570,6 +601,9 @@ public class DragSlopLayout extends FrameLayout {
         }
         if (visibleHeight >= 0) {
             ViewCompat.setTranslationY(mMainView, -visibleHeight * (1 - mCollapseParallax));
+        }
+        if (mDragPositionListener != null) {
+            mDragPositionListener.onDragPosition(visibleHeight, percent, mIsUp);
         }
     }
 
@@ -1018,5 +1052,38 @@ public class DragSlopLayout extends FrameLayout {
                 });
             }
         }).start();
+    }
+
+    /** ================================ 监听器 ================================ */
+
+    // 监听器
+    private OnDragPositionListener mDragPositionListener;
+    // 是否向上拖拽
+    private boolean mIsUp = false;
+    // 上一次比较时的拖拽高度
+    private int mLastDragViewTop;
+    // 最小触摸滑动距离
+    private int mMinTouchSlop;
+
+    /**
+     * 设置监听器
+     * @param dragPositionListener
+     */
+    public void setDragPositionListener(OnDragPositionListener dragPositionListener) {
+        mDragPositionListener = dragPositionListener;
+    }
+
+    /**
+     * 拖拽监听器
+     */
+    public interface OnDragPositionListener {
+
+        /**
+         * 拖拽监听
+         * @param visibleHeight 可见高度
+         * @param percent   可见百分比
+         * @param isUp  是否向上拖拽
+         */
+        void onDragPosition(int visibleHeight, float percent, boolean isUp);
     }
 }
