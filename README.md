@@ -7,13 +7,16 @@ Screenshot
 ---
 
 #### Drag模式，可以和 ViewPager 联动
-![Drag](https://github.com/Rukey7/AndroidCommon/blob/master/ScreenShot/DragSlopLayout/drag.gif)
+![Drag](https://raw.githubusercontent.com/Rukey7/ScreenShot/master/DragSlopLayout/drag.gif)
 
 #### Animate模式，同样可以和 ViewPager 联动(自定义动画无联动效果)
-![Animate](https://github.com/Rukey7/AndroidCommon/blob/master/ScreenShot/DragSlopLayout/animate.gif)
+![Animate](https://raw.githubusercontent.com/Rukey7/ScreenShot/master/DragSlopLayout/animate.gif)
 
 #### Blur模糊效果，包括局部模糊和全图模糊
-![Blur](https://raw.githubusercontent.com/Rukey7/AndroidCommon/master/ScreenShot/DragSlopLayout/blur.gif)
+![Blur](https://raw.githubusercontent.com/Rukey7/ScreenShot/master/DragSlopLayout/blur.gif)
+
+#### 外部拖拽，在屏幕上垂直滑动就可对视图进行拖拽，能够设置主视图滑动折叠
+![Blur](https://raw.githubusercontent.com/Rukey7/ScreenShot/master/DragSlopLayout/drag_out.gif)
 
 Gradle
 ---
@@ -59,6 +62,7 @@ Usage
 
 ### 布局
 ```xml
+
 <com.dl7.drag.DragSlopLayout
 	android:id="@+id/drag_layout"
 	android:layout_width="match_parent"
@@ -85,26 +89,40 @@ Usage
 	
 ### 如果 Content View 为 ViewPager，通过以下方法来实现联动效果：
 ```java
+
     mDragLayout.interactWithViewPager(true);
 ```
 ### 如果 Drag View 包含 ScrollView 或则 NestedScrollView，通过以下方法来实现平滑滚动：
 ```java
+
     mDragLayout.setAttachScrollView(mSvView);
 ```
 ### Content View 的模糊效果，这功能是通过模糊预处理再来动态加载的，所以对于 Content View  为 ViewPager 的界面不适用，主要用来模糊固定的背景界面
 ```java
+
     mDragLayout.setEnableBlur(true);	// 开启模糊
     mDragLayout.setBlurFull(true);	// 设置全背景模糊，默认为局部模糊
     mDragLayout.updateBlurView();	// 更新模糊背景
 ```
 ### 控制 Drag View 的进入和退出
 ```java
+
     mDragLayout.scrollInScreen(int duration);	// Drag 模式
     mDragLayout.scrollOutScreen(int duration);	// Drag 模式
 
     mDragLayout.startInAnim();	// Animate 模式
     mDragLayout.startOutAnim();	// Animate 模式
     mDsLayout.setAnimatorMode(DragSlopLayout.FLIP_Y);	// 设置动画模式
+```
+### 设置拖拽监听
+```java
+
+    mDragLayout.setDragPositionListener(new DragSlopLayout.OnDragPositionListener() {
+            @Override
+            public void onDragPosition(int visibleHeight, float percent, boolean isUp) {
+                // TODO
+            }
+        });
 ```
     
 Thanks
