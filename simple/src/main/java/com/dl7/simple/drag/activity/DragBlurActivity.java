@@ -46,7 +46,7 @@ public class DragBlurActivity extends BaseActivity {
         setContentView(R.layout.activity_drag_blur);
         ButterKnife.bind(this);
         initToolBar(mToolBar, true, "");
-        mDragLayout.setEnableBlur(true);
+//        mDragLayout.setEnableBlur(true);
     }
 
     @Override
@@ -60,10 +60,10 @@ public class DragBlurActivity extends BaseActivity {
         item.setChecked(true);
         switch (item.getItemId()) {
             case R.id.blur_local:
-                mDragLayout.setBlurFull(false);
+//                mDragLayout.setBlurFull(false);
                 return true;
             case R.id.blur_full:
-                mDragLayout.setBlurFull(true);
+//                mDragLayout.setBlurFull(true);
                 return true;
         }
         return super.onOptionsItemSelected(item);
@@ -77,7 +77,7 @@ public class DragBlurActivity extends BaseActivity {
                 break;
             case R.id.ll_next:
                 mIvPhoto.setImageResource(mImgRes[mIndex++ % mImgRes.length]);
-                mDragLayout.updateBlurView();
+//                mDragLayout.updateBlurView();
                 break;
             case R.id.ll_download:
                 Toast.makeText(this, "下载", Toast.LENGTH_SHORT).show();
