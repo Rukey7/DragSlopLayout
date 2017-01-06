@@ -1,4 +1,4 @@
-package com.dl7.simple.drag.adapter;
+package com.dl7.simple.drag.utils;
 
 import android.content.Context;
 import android.support.v7.widget.DefaultItemAnimator;
@@ -6,6 +6,9 @@ import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.StaggeredGridLayoutManager;
+
+import com.dl7.simple.drag.adapter.DividerGridItemDecoration;
+import com.dl7.simple.drag.adapter.DividerItemDecoration;
 
 
 /**

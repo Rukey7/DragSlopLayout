@@ -19,6 +19,7 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:orientation="vertical"
+        android:clickable="true"
         android:background="@android:color/white"
         android:layout_height="wrap_content">
 
@@ -26,26 +27,43 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_margin="10dp"
-            android:text="相关图片"
+            android:text="缩略图"
             android:textColor="#333333"/>
 
         <android.support.v7.widget.RecyclerView
             android:id="@+id/rv_relate_list"
             android:layout_width="match_parent"
-            android:layout_height="128dp"/>
+            android:layout_height="150dp"/>
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_margin="10dp"
-            android:text="相关说明"
+            android:text="说明"
             android:textColor="#333333"/>
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_marginLeft="10dp"
             android:layout_marginBottom="10dp"
-            android:text="汤姆·哈迪\n克里斯蒂安·贝尔\n马克·沃尔伯格\n威尔·史密斯\n丹泽尔·华盛顿"
+            android:text="布局里放你需要的控件"
+            android:textColor="#333333"/>
+
+        <android.support.v7.widget.AppCompatSeekBar
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"/>
+
+        <CheckBox
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="10dp"
+            android:layout_marginBottom="10dp"
+            android:text="@string/app_name"
             android:textColor="#333333"/>
     </LinearLayout>
 

@@ -186,21 +186,23 @@ public class DragSlopLayout extends FrameLayout {
     @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
         super.onMeasure(widthMeasureSpec, heightMeasureSpec);
-
-        if (mMaxHeight == 0) {
-            // 未设置最大高度则为布局高度的 2/3
-            mMaxHeight = getMeasuredHeight() * 2 / 3;
-        }
-        View childView = getChildAt(2);
-        MarginLayoutParams lp = (MarginLayoutParams) childView.getLayoutParams();
-        int childWidth = childView.getMeasuredWidth();
-        int childHeight = childView.getMeasuredHeight();
-        // 限定视图的最大高度
-        if (childHeight > mMaxHeight) {
-            mMaxHeight = childHeight;
-            MeasureSpec.makeMeasureSpec(childWidth - lp.leftMargin - lp.rightMargin, MeasureSpec.EXACTLY);
-            childView.measure(MeasureSpec.makeMeasureSpec(childWidth - lp.leftMargin - lp.rightMargin, MeasureSpec.EXACTLY),
-                    MeasureSpec.makeMeasureSpec(mMaxHeight - lp.topMargin - lp.bottomMargin, MeasureSpec.EXACTLY));
+        if (mMode == MODE_DRAG) {
+            if (mMaxHeight == 0) {
+                // 未设置最大高度则为布局高度的 2/3
+                mMaxHeight = getMeasuredHeight() * 2 / 3;
+            } else if (mMaxHeight > getMeasuredHeight()) {
+                // MODE_DRAG 模式最大高度不超过布局高度
+                mMaxHeight = getMeasuredHeight();
+            }
+            View childView = getChildAt(2);
+            MarginLayoutParams lp = (MarginLayoutParams) childView.getLayoutParams();
+            int childWidth = childView.getMeasuredWidth();
+            int childHeight = childView.getMeasuredHeight();
+            // 限定视图的最大高度
+            if (childHeight > mMaxHeight) {
+                childView.measure(MeasureSpec.makeMeasureSpec(childWidth - lp.leftMargin - lp.rightMargin, MeasureSpec.EXACTLY),
+                        MeasureSpec.makeMeasureSpec(mMaxHeight - lp.topMargin - lp.bottomMargin, MeasureSpec.EXACTLY));
+            }
         }
     }
 
@@ -223,7 +225,7 @@ public class DragSlopLayout extends FrameLayout {
         mExpandedTop = b - childHeight;
         mCollapsedTop = b - mFixHeight;
         // 如果本身 mDragViewTop 已经有值，则直接使用，不然会出现突然闪一下的情况
-        if (mDragViewTop == 0) {
+        if (mDragViewTop == 0 || mMode != MODE_DRAG_OUTSIDE) {
             if (mDragStatus == STATUS_EXIT) {
                 // 对于 ViewPager 换页后会回调 onLayout()，需要进行处理
                 if (mMode == MODE_DRAG || mMode == MODE_DRAG_OUTSIDE) {
@@ -326,7 +328,6 @@ public class DragSlopLayout extends FrameLayout {
 
         @Override
         public boolean tryCaptureView(View child, int pointerId) {
-            requestDisallowInterceptTouchEvent(true);
             mIsDrag = child == mDragView;
             return mIsDrag;
         }
@@ -363,7 +364,6 @@ public class DragSlopLayout extends FrameLayout {
                     ViewCompat.postInvalidateOnAnimation(DragSlopLayout.this);
                 }
             }
-            requestDisallowInterceptTouchEvent(false);
         }
 
         @Override
