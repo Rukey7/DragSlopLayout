@@ -35,7 +35,7 @@ allprojects {
 因为模糊库比较大，如果你需要使用模糊效果则依赖的版本{lastest-version}后面加上'-blur'，不需要则不用加
 
 ```gradle
-compile 'com.github.Rukey7:IjkPlayerView:{lastest-version}-blur'
+compile 'com.github.Rukey7:DragSlopLayout:{lastest-version}-blur'
 ```
 
 ### 使用模糊库需要设置对应的配置
