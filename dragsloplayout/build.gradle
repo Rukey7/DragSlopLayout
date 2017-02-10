@@ -11,8 +11,8 @@ android {
         targetSdkVersion 23
         versionCode 4
         versionName "1.0.4"
-        renderscriptTargetApi 23
-        renderscriptSupportModeEnabled true
+//        renderscriptTargetApi 23
+//        renderscriptSupportModeEnabled true
     }
     buildTypes {
         release {

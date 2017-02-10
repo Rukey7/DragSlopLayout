@@ -2,14 +2,6 @@ package com.dl7.drag;
 
 import android.content.Context;
 import android.content.res.TypedArray;
-import android.graphics.Bitmap;
-import android.graphics.Canvas;
-import android.graphics.Color;
-import android.graphics.drawable.BitmapDrawable;
-import android.graphics.drawable.ClipDrawable;
-import android.graphics.drawable.ColorDrawable;
-import android.graphics.drawable.Drawable;
-import android.os.Build;
 import android.support.annotation.IntDef;
 import android.support.v4.view.MotionEventCompat;
 import android.support.v4.view.ViewCompat;
@@ -17,13 +9,8 @@ import android.support.v4.view.ViewPager;
 import android.support.v4.widget.NestedScrollView;
 import android.support.v4.widget.ScrollerCompat;
 import android.support.v4.widget.ViewDragHelper;
-import android.support.v8.renderscript.Allocation;
-import android.support.v8.renderscript.Element;
-import android.support.v8.renderscript.RenderScript;
-import android.support.v8.renderscript.ScriptIntrinsicBlur;
 import android.util.AttributeSet;
 import android.view.GestureDetector;
-import android.view.Gravity;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewConfiguration;
@@ -260,10 +247,10 @@ public class DragSlopLayout extends FrameLayout {
         if (mAnimPresenter != null) {
             mAnimPresenter.stopAllAnimator();
         }
-        if (mBitmapToBlur != null) {
+        /*if (mBitmapToBlur != null) {
             mBitmapToBlur.recycle();
             mBitmapToBlur = null;
-        }
+        }*/
     }
 
     /***********************************
@@ -607,7 +594,7 @@ public class DragSlopLayout extends FrameLayout {
             mIsUp = (mDragViewTop < mLastDragViewTop);
             mLastDragViewTop = mDragViewTop;
         }
-        if (mEnableBlur && mBlurDrawable != null) {
+        /*if (mEnableBlur && mBlurDrawable != null) {
             if (visibleHeight < mFixHeight) {
                 return;
             }
@@ -618,7 +605,7 @@ public class DragSlopLayout extends FrameLayout {
                 mBlurDrawable.setLevel(blurLevel);
             }
             mBlurDrawable.setAlpha((int) (percent * 255));
-        }
+        }*/
         if (visibleHeight >= 0) {
             ViewCompat.setTranslationY(mMainView, -visibleHeight * (1 - mCollapseParallax));
         }
@@ -655,9 +642,9 @@ public class DragSlopLayout extends FrameLayout {
         if (mDragHelper.isViewUnder(mAttachScrollView, (int) ev.getX(), y) && mMode != MODE_ANIMATE) {
             return true;
         }
-        if (mEnableBlur && mDragStatus == STATUS_EXPANDED) {
+        /*if (mEnableBlur && mDragStatus == STATUS_EXPANDED) {
             return true;
-        }
+        }*/
         return false;
     }
 
@@ -894,7 +881,7 @@ public class DragSlopLayout extends FrameLayout {
     /*************************************
      * Blur
      ********************************************/
-    private final static int DEFAULT_SAMPLE_FACTOR = 4;
+    /*private final static int DEFAULT_SAMPLE_FACTOR = 4;
     private final static int DEFAULT_BLUR_RADIUS = 5;
 
     // 使能模糊
@@ -938,11 +925,11 @@ public class DragSlopLayout extends FrameLayout {
         mIsBlurFull = blurFull;
     }
 
-    /**
+    *//**
      * 设置使能模糊效果
      *
      * @param enableBlur
-     */
+     *//*
     public void setEnableBlur(boolean enableBlur) {
         if (mEnableBlur == enableBlur) {
             return;
@@ -973,9 +960,9 @@ public class DragSlopLayout extends FrameLayout {
         }
     }
 
-    /**
+    *//**
      * 刷新模糊视图
-     */
+     *//*
     public void updateBlurView() {
         if (mEnableBlur) {
             mBlurDrawable = null;
@@ -983,11 +970,11 @@ public class DragSlopLayout extends FrameLayout {
         }
     }
 
-    /**
+    *//**
      * 模糊视图
      *
      * @param view
-     */
+     *//*
     private void _blurView(View view) {
         final int width = view.getWidth();
         final int height = view.getHeight();
@@ -1050,9 +1037,9 @@ public class DragSlopLayout extends FrameLayout {
         }
     }
 
-    /**
+    *//**
      * 在线程处理图片模糊
-     */
+     *//*
     @SuppressWarnings("deprecation")
     private void _handleBlurInThread() {
         new Thread(new Runnable() {
@@ -1073,7 +1060,7 @@ public class DragSlopLayout extends FrameLayout {
             }
         }).start();
     }
-
+*/
     /** ================================ 监听器 ================================ */
 
     // 监听器
