@@ -115,6 +115,8 @@ public class DragSlopLayout extends FrameLayout {
     private boolean mIsCustomAnimator = false;
     // 关联的 ScrollView，实现垂直方向的平滑滚动
     private View mAttachScrollView;
+    // 关联的 ViewPager，实现联动
+    private ViewPager mAttachViewPager;
     // 手势控制
     private GestureDetector mGestureDetector;
     // DragView的Top属性值
@@ -703,11 +705,96 @@ public class DragSlopLayout extends FrameLayout {
 
     /*********************************** ViewPager ********************************************/
 
+
     /**
-     * 和 ViewPager 进行联动，注意第1个子视图必须为 ViewPager 或它的子类
+     * 和 ViewPager 进行联动
      *
+     * @param attachViewPager 关联 ViewPager
+     */
+    public void attachViewPager(ViewPager attachViewPager) {
+        if (!_isViewPager(attachViewPager)) {
+            throw new IllegalArgumentException("The first child view must be ViewPager.");
+        }
+        mAttachViewPager = attachViewPager;
+        if (mViewPagerListener != null) {
+            mAttachViewPager.removeOnPageChangeListener(mViewPagerListener);
+        }
+        mViewPagerListener = new ViewPager.SimpleOnPageChangeListener() {
+
+            boolean isRightSlide = true;
+            float mLastOffset = 0;
+            int status = ViewPager.SCROLL_STATE_IDLE;
+            int curDragViewTop;
+
+            @Override
+            public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
+                if (status != ViewPager.SCROLL_STATE_IDLE && !mIsCustomAnimator) {
+                    // 判断拖拽过界的方向
+                    if (Math.abs(positionOffset - mLastOffset) > 0.8f &&
+                            status == ViewPager.SCROLL_STATE_DRAGGING) {
+                        if (positionOffset > 0.5f) {
+                            isRightSlide = false;
+                        } else {
+                            isRightSlide = true;
+                        }
+                    }
+                    float percent;
+                    if (isRightSlide) {
+                        percent = positionOffset;
+                        if (positionOffset == 0 && status == ViewPager.SCROLL_STATE_SETTLING && mLastOffset > 0.5f) {
+                            percent = 1.0f;
+                        }
+                    } else {
+                        percent = 1 - positionOffset;
+                        if (positionOffset == 0 && status == ViewPager.SCROLL_STATE_SETTLING && mLastOffset > 0.5f) {
+                            percent = 0;
+                        }
+                    }
+                    _hideDragView(percent, curDragViewTop);
+                    mLastOffset = positionOffset;
+                }
+            }
+
+            @Override
+            public void onPageScrollStateChanged(int state) {
+                if (state == ViewPager.SCROLL_STATE_IDLE && !mIsCustomAnimator) {
+                    isRightSlide = true;
+                    mLastOffset = 0;
+                    // 如果手动调用退出动画则不做自动启动动画
+                    if (mDragStatus == STATUS_EXIT && !mIsDoOutAnim && mMode != MODE_DRAG_OUTSIDE) {
+                        _showDragView(mAutoAnimateDelay);
+                    }
+                } else {
+                    if (mDragStatus == STATUS_EXIT) {
+                        getHandler().removeCallbacks(mShowRunnable);
+                    }
+                    if (state == ViewPager.SCROLL_STATE_DRAGGING) {
+                        curDragViewTop = mDragView.getTop();
+                    }
+                }
+                status = state;
+            }
+        };
+        mAttachViewPager.addOnPageChangeListener(mViewPagerListener);
+    }
+
+    /**
+     * 取消 ViewPager 关联
+     */
+    public void detachViewPager() {
+        if (mViewPagerListener != null && mAttachViewPager != null) {
+            mAttachViewPager.removeOnPageChangeListener(mViewPagerListener);
+        }
+        mViewPagerListener = null;
+        mAttachViewPager = null;
+    }
+
+    /**
+     * 和 ViewPager 进行联动，注意第1个子视图必须为 ViewPager 或它的子类，
+     * 替换为 {@link #attachViewPager}
      * @param isInteract 是否联动
      */
+    @Deprecated
     public void interactWithViewPager(boolean isInteract) {
         if (!_isViewPager(mMainView)) {
             throw new IllegalArgumentException("The first child view must be ViewPager.");

@@ -69,7 +69,8 @@ public class DragActivity extends BaseActivity {
         // 实现 ScrollView 的平滑滚动
         mDragLayout.setAttachScrollView(mSvView);
         // 和 ViewPager 联动
-        mDragLayout.interactWithViewPager(mIsInteract);
+//        mDsLayout.interactWithViewPager(mIsInteract);
+        mDragLayout.attachViewPager(mVpPhoto);
 
         mTvCount.setText("" + imgList.size());
         mTvTitle.setText(titleList[0]);
@@ -109,7 +110,12 @@ public class DragActivity extends BaseActivity {
             case R.id.item_interact:
                 mIsInteract = !mIsInteract;
                 item.setChecked(mIsInteract);
-                mDragLayout.interactWithViewPager(mIsInteract);
+//                mDsLayout.interactWithViewPager(mIsInteract);
+                if (mIsInteract) {
+                    mDragLayout.attachViewPager(mVpPhoto);
+                } else {
+                    mDragLayout.detachViewPager();
+                }
                 return true;
         }
         return super.onOptionsItemSelected(item);

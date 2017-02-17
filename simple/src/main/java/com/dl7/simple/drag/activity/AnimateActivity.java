@@ -78,7 +78,8 @@ public class AnimateActivity extends BaseActivity {
                 isOpen = !isOpen;
             }
         });
-        mDsLayout.interactWithViewPager(mIsInteract);
+//        mDsLayout.interactWithViewPager(mIsInteract);
+        mDsLayout.attachViewPager(mVpPhoto);
     }
 
     @OnClick({R.id.iv_favorite, R.id.iv_download, R.id.iv_praise, R.id.iv_share})
@@ -151,7 +152,12 @@ public class AnimateActivity extends BaseActivity {
             case R.id.item_interact:
                 mIsInteract = !mIsInteract;
                 item.setChecked(mIsInteract);
-                mDsLayout.interactWithViewPager(mIsInteract);
+//                mDsLayout.interactWithViewPager(mIsInteract);
+                if (mIsInteract) {
+                    mDsLayout.attachViewPager(mVpPhoto);
+                } else {
+                    mDsLayout.detachViewPager();
+                }
                 return true;
         }
         return super.onOptionsItemSelected(item);

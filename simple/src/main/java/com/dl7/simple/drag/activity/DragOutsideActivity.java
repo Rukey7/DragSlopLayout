@@ -114,7 +114,8 @@ public class DragOutsideActivity extends BaseActivity {
         mAdapter = new ThumbAdapter(this, thumbList);
         RecyclerViewHelper.initRecyclerViewH(this, mRvRelateList, mAdapter);
         // 和 ViewPager 联动
-        mDragLayout.interactWithViewPager(mIsInteract);
+//        mDragLayout.interactWithViewPager(mIsInteract);
+        mDragLayout.attachViewPager(mVpPhoto);
         mDragLayout.setDragPositionListener(new DragSlopLayout.OnDragPositionListener() {
             @Override
             public void onDragPosition(int visibleHeight, float percent, boolean isUp) {
@@ -144,7 +145,12 @@ public class DragOutsideActivity extends BaseActivity {
             case R.id.item_interact:
                 mIsInteract = !mIsInteract;
                 item.setChecked(mIsInteract);
-                mDragLayout.interactWithViewPager(mIsInteract);
+//                mDsLayout.interactWithViewPager(mIsInteract);
+                if (mIsInteract) {
+                    mDragLayout.attachViewPager(mVpPhoto);
+                } else {
+                    mDragLayout.detachViewPager();
+                }
                 return true;
         }
         return super.onOptionsItemSelected(item);
