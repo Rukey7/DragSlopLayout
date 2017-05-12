@@ -285,6 +285,8 @@ public class DragSlopLayout extends FrameLayout {
 
     @Override
     public boolean onInterceptTouchEvent(MotionEvent ev) {
+        // 调用父类的方法，避免可能出现的 IllegalArgumentException: pointerIndex out of range
+        super.onInterceptTouchEvent(ev);
         boolean isIntercept = mDragHelper.shouldInterceptTouchEvent(ev);
         if (_isNeedIntercept(ev)) {
             isIntercept = true;
