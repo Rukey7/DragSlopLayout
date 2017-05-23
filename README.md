@@ -91,6 +91,10 @@ Usage
 ```java
 
     mDragLayout.interactWithViewPager(true);
+	// 下面新增的方法会更适用，替换上面旧的方法
+	mDragLayout.attachViewPager(ViewPager)；
+	mDragLayout.detachViewPager()；
+	
 ```
 ### 如果 Drag View 包含 ScrollView 或则 NestedScrollView，通过以下方法来实现平滑滚动：
 ```java
